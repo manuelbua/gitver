@@ -109,30 +109,33 @@ function finalize_bump {
 }
 
 function update_version_info {
-	# search for template
-	TPL="$TPL_DIR/$1"
-	if [ ! -f "$TPL" ]; then
-		echo "The specified template $TPL doesn't exists"
-		exit 1
-	fi
+	for T in $1; do
+		# search for template
+		TPL="$TPL_DIR/$T"
+		echo -n "Processing \"$TPL\""
+		if [ ! -f "$TPL" ]; then
+			echo "\nThe specified template $TPL doesn't exists"
+			exit 1
+		fi
 
-	# first line identify the output file
-	OUTFILE=`head -n1 $TPL | tr -d '#' | tr -d [:blank:]`
-	if [ -z "$OUTFILE" ]; then
-		echo "Couldn't read output file from the specified template \"$TPL\""
-		exit 1
-	fi
+		# first line identify the output file
+		OUTFILE=`head -n1 $TPL | tr -d '#' | tr -d [:blank:]`
+		if [ -z "$OUTFILE" ]; then
+			echo "\nCouldn't read output file from the specified template \"$TPL\""
+			exit 1
+		fi
 
-	# perform bash variable substitution in template file
-	eval "tail -n+2 <<EOF
+		# perform bash variable substitution in template file
+		eval "tail -n+2 <<EOF
 $(<$TPL)
 EOF
 " 2> /dev/null > $OUTFILE
-	echo "Done writing file $OUTFILE with template \"$TPL\""
+		echo ", wrote file file://$OUTFILE ("`du -sh "$OUTFILE" | awk '{ print $1}'`")"
+	done
 }
 
 function help {
-	echo "usage: `basename $0` <info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo>"
+	echo "usage: `basename $0` <info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>"
 }
 
 case "$1" in
@@ -172,7 +175,7 @@ case "$1" in
 
 			exit 1
 		fi
-		update_version_info $2
+		update_version_info "$2"
 		;;
 	*)
 		help
