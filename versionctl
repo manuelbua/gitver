@@ -1,0 +1,166 @@
+#!/bin/bash
+
+if [ ! -d ./.git ]
+then
+  echo "Please run this tool from within the root directory of your project, where the .git directory resides."
+  exit 1
+fi
+
+TPL_DIR="./.gitver/templates"
+# ensure directories exist
+mkdir -p $TPL_DIR
+
+FULL_BUILD_ID=`cat .git/$(git symbolic-ref HEAD 2>/dev/null)|tr -d \n`
+BUILD_ID=`echo $FULL_BUILD_ID | cut -c 1-8`
+LAST_TAG_COMMIT=`git rev-list --tags --max-count=1`
+LAST_TAG=`git describe --tags $LAST_TAG_COMMIT`
+COMMIT_COUNT=`git log --oneline $LAST_TAG..HEAD | wc -l`
+TAG_PREFIX="v"
+
+# extract current version
+#VERSION=0.9.4
+VERSION=`echo $LAST_TAG | sed "s/^$TAG_PREFIX//"`
+MAJOR=`echo $VERSION | sed "s/^\([0-9]*\).*/\1/"`
+MINOR=`echo $VERSION | sed "s/[0-9]*\.\([0-9]*\).*/\1/"`
+PATCH=`echo $VERSION | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/"`
+NOTE=`echo $VERSION | grep -o "[a-zA-Z]*"`
+CURR=$MAJOR.$MINOR.$PATCH
+
+if [ ! -z $NOTE ]
+then
+	CURR+=-$NOTE
+fi
+
+if [ ! $COMMIT_COUNT -eq 0 ]
+then
+	CURR+=-$COMMIT_COUNT
+fi
+
+CURR+=/$BUILD_ID
+
+# compute next versions
+NEXT_SUFFIX="SNAPSHOT"
+NEXT_MAJOR=$[MAJOR+1].0.0-$NEXT_SUFFIX
+NEXT_MINOR=$MAJOR.$[MINOR+1].0-$NEXT_SUFFIX
+NEXT_PATCH=$MAJOR.$MINOR.$[PATCH+1]-$NEXT_SUFFIX
+PENDING=$MAJOR.$MINOR.$PATCH
+
+function info {
+	# print info
+	echo Current tag: $LAST_TAG
+	echo Current version: v$CURR
+	echo Current build ID: $FULL_BUILD_ID
+	echo Possible next versions to bump to:
+	echo "  bump-major => v$NEXT_MAJOR"
+	echo "  bump-minor => v$NEXT_MINOR"
+	echo "  bump-patch => v$NEXT_PATCH"
+	if [ "$LAST_TAG" == "v$PENDING" ]; then
+		if [ $COMMIT_COUNT -eq 0 ]; then
+			echo "Next version: idleing ($LAST_TAG)"
+		else
+			echo "Next version: unknown, $LAST_TAG-$COMMIT_COUNT (+$COMMIT_COUNT commits)"
+		fi
+	else
+		echo "Next version: $LAST_TAG => v$PENDING"
+	fi
+}
+
+function bump_major {
+	echo "Bumping from $LAST_TAG to $NEXT_MAJOR"
+	if [ -z "$NOTE" ]; then
+		git tag -a v$NEXT_MAJOR -m "Bumping from $LAST_TAG to v$NEXT_MAJOR"
+		echo "Done, `git describe --long`"
+	else
+		echo "Cannot bump $LAST_TAG"
+	fi
+}
+
+function bump_minor {
+	echo "Bumping from $LAST_TAG to $NEXT_MINOR"
+	if [ -z "$NOTE" ]; then
+		git tag -a v$NEXT_MINOR -m "Bumping from $LAST_TAG to v$NEXT_MINOR"
+		echo "Done, `git describe --long`"
+	else
+		echo "Cannot bump $LAST_TAG"
+	fi
+}
+
+function bump_patch {
+	echo "Bumping from $LAST_TAG to $NEXT_PATCH"
+	if [ -z "$NOTE" ]; then
+		git tag -a v$NEXT_PATCH -m "Bumping from $LAST_TAG to v$NEXT_PATCH"
+		echo "Done, `git describe --long`"
+	else
+		echo "Cannot bump $LAST_TAG"
+	fi
+}
+
+function finalize_bump {
+	if [ "$NOTE" == "$NEXT_SUFFIX" ]; then
+		git tag -a v$PENDING -m "Bumping from $LAST_TAG to v$PENDING"
+		echo "Done, `git describe --long`"
+	else
+		echo "Cannot finalize $LAST_TAG, expected a valid suffix (-$NEXT_SUFFIX)"
+	fi
+}
+
+function update_version_info {
+	# search for template
+	TPL="$TPL_DIR/$1"
+	if [ ! -f "$TPL" ]; then
+		echo "The specified template $TPL doesn't exists"
+		exit 1
+	fi
+
+	# first line identify the output file
+	OUTFILE=`head -n1 $TPL | tr -d '#' | tr -d [:blank:]`
+	if [ -z "$OUTFILE" ]; then
+		echo "Couldn't read output file from the specified template \"$TPL\""
+		exit 1
+	fi
+
+	# perform bash variable substitution in template file
+	eval "tail -n+2 <<EOF
+$(<$TPL)
+EOF
+" 2> /dev/null > $OUTFILE
+	echo "Done writing file $OUTFILE with template \"$TPL\""
+}
+
+function help {
+	echo "usage: `basename $0` <info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo>"
+}
+
+case "$1" in
+	info)
+		info
+		;;
+
+	bump-major)
+		bump_major
+		;;
+
+	bump-minor)
+		bump_minor
+		;;
+
+	bump-patch)
+		bump_patch
+		;;
+
+	finalize-bump)
+		finalize_bump
+		;;
+
+	update-versioninfo)
+		if [ -z "$2" ]
+		then
+			echo "Please specify a valid template"
+			exit 1
+		fi
+		update_version_info $2
+		;;
+	*)
+		help
+		;;
+esac
