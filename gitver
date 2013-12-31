@@ -1,18 +1,47 @@
 #!/bin/bash
 
-if [ ! -d ./.git ]
-then
+CONF_DIR="./.gitver"
+TPL_DIR="$CONF_DIR/templates"
+
+# need to move these here to make them available
+function help {
+	echo "usage: `basename $0` <init|info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>"
+}
+
+function init {
+	if [[ ! -z "$CONF_DIR" ]] && [[ ! -d "$CONF_DIR" ]]; then
+		mkdir -p "$CONF_DIR"
+		echo "Created configuration directory \"$CONF_DIR\""
+	fi
+
+	if [[ ! -z "$TPL_DIR" ]] && [[ ! -d "$TPL_DIR" ]]; then
+		mkdir -p "$TPL_DIR"
+		echo "Created template directory \"$TPL_DIR\""
+	fi
+}
+
+# do init this repo
+case "$1" in
+	init)
+		init
+		exit 0
+		;;
+esac
+
+if [ ! -d ./.git ]; then
   echo "Please run this tool from within the root directory of your project, where the .git directory resides."
+  help
   exit 1
 fi
 
-TPL_DIR="./.gitver/templates"
-
-# ensure directories exist
-mkdir -p $TPL_DIR
+if [ ! -d "$CONF_DIR" ]; then
+  echo -e "Please run \"`basename $0` init\" first."
+  help
+  exit 1
+fi
 
 # enumerate existing templates
-TEMPLATES=`ls $TPL_DIR`
+TEMPLATES=`ls $TPL_DIR 2> /dev/null`
 
 FULL_BUILD_ID=`cat .git/$(git symbolic-ref HEAD 2>/dev/null)|tr -d \n`
 BUILD_ID=`echo $FULL_BUILD_ID | cut -c 1-8`
@@ -30,13 +59,11 @@ PATCH=`echo $VERSION | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/"`
 NOTE=`echo $VERSION | grep -o "[a-zA-Z]*"`
 CURR=$MAJOR.$MINOR.$PATCH
 
-if [ ! -z $NOTE ]
-then
+if [ ! -z $NOTE ]; then
 	CURR+=-$NOTE
 fi
 
-if [ ! $COMMIT_COUNT -eq 0 ]
-then
+if [ ! $COMMIT_COUNT -eq 0 ]; then
 	CURR+=-$COMMIT_COUNT
 fi
 
@@ -134,9 +161,10 @@ EOF
 	done
 }
 
-function help {
-	echo "usage: `basename $0` <info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>"
-}
+
+#
+# main entrypoint
+#
 
 case "$1" in
 	info)
