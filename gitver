@@ -7,8 +7,12 @@ then
 fi
 
 TPL_DIR="./.gitver/templates"
+
 # ensure directories exist
 mkdir -p $TPL_DIR
+
+# enumerate existing templates
+TEMPLATES=`ls $TPL_DIR`
 
 FULL_BUILD_ID=`cat .git/$(git symbolic-ref HEAD 2>/dev/null)|tr -d \n`
 BUILD_ID=`echo $FULL_BUILD_ID | cut -c 1-8`
@@ -153,9 +157,19 @@ case "$1" in
 		;;
 
 	update-versioninfo)
-		if [ -z "$2" ]
-		then
-			echo "Please specify a valid template"
+		if [ -z "$TEMPLATES" ]; then
+			echo "No valid templates found, please add one to your templates directory ($TPL_DIR)"
+		fi
+
+		if [ -z "$2" ]; then
+			echo -n "Please specify a valid template"
+			if [ ! -z "$TEMPLATES" ]; then
+				echo ", list of available templates:"
+				for T in $TEMPLATES; do
+					echo "    $TPL_DIR/$T"
+				done
+			fi
+
 			exit 1
 		fi
 		update_version_info $2
