@@ -18,6 +18,7 @@ function check_tag {
 		echo -e "An initial first tag is needed, you can create such first tag with the following command:"
 		echo -e "    git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'\n"
 		read -p "Would you like to do it now at HEAD (y/n)? " -n 1 -r
+		echo
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'
 			echo "Done."
