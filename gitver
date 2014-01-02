@@ -82,17 +82,17 @@ MAJOR=`echo $VERSION | sed "s/^\([0-9]*\).*/\1/"`
 MINOR=`echo $VERSION | sed "s/[0-9]*\.\([0-9]*\).*/\1/"`
 PATCH=`echo $VERSION | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/"`
 NOTE=`echo $VERSION | grep -o "[a-zA-Z]*"`
-CURR=$MAJOR.$MINOR.$PATCH
+CURRENT_VERSION=$MAJOR.$MINOR.$PATCH
 
 if [ ! -z $NOTE ]; then
-	CURR+=-$NOTE
+	CURRENT_VERSION+=-$NOTE
 fi
 
 if [ ! $COMMIT_COUNT -eq 0 ]; then
-	CURR+=-$COMMIT_COUNT
+	CURRENT_VERSION+=-$COMMIT_COUNT
 fi
 
-CURR+=/$BUILD_ID
+CURRENT_VERSION+=/$BUILD_ID
 
 # compute next versions
 NEXT_MAJOR=$[MAJOR+1].0.0-$NEXT_SUFFIX
@@ -104,7 +104,7 @@ function info {
 	# print info
 	echo Current tag: $LAST_TAG
 	echo Current build ID: $FULL_BUILD_ID
-	echo Current version: v$CURR
+	echo Current version: v$CURRENT_VERSION
 	echo Possible next versions to bump to:
 	echo "  bump-major => v$NEXT_MAJOR"
 	echo "  bump-minor => v$NEXT_MINOR"
