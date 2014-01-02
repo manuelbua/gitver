@@ -29,12 +29,14 @@ case "$1" in
 		;;
 esac
 
+# check repo existance
 if [ ! -d ./.git ]; then
   echo "Please run this tool from within the root directory of your project, where the .git directory resides."
   help
   exit 1
 fi
 
+# check for conf dir
 if [ ! -d "$CONF_DIR" ]; then
   echo -e "Please run \"`basename $0` init\" first."
   help
