@@ -182,6 +182,8 @@ This will produce the following file at ```/home/manuel/dev/python/project/versi
     project_version = "v0.4.10-SNAPSHOT-1/bb29217d"
     project_build_id = "bb29217d46325ba4f7b8177c9cc1cddd82246f32"
 
+Searching for another example? Look at this project on [github](https://github.com/manuelbua/gitver), the VERSION file is generated this way.
+
 ## Templates + git hooks
 At this point is very simple to automatize even more, instead of manually updating version information after each commit let's create a git hook to take care of it:
 
@@ -193,7 +195,7 @@ At this point is very simple to automatize even more, instead of manually updati
 There you have it!
 
 ## Thanks
-*gitver* has been inspired by [this Falkor's Makefile](github.com/Falkor/Makefiles/blob/devel/latex/Makefile), thanks!
+*gitver* has been inspired by [this Falkor's Makefile](https://github.com/Falkor/Makefiles/blob/devel/latex/Makefile), thanks!
 
 ## Bugs
 NOPE!! MY CODE HAS NO BUGS!11
