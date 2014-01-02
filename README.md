@@ -192,6 +192,9 @@ At this point is very simple to automatize even more, instead of manually updati
 
 There you have it!
 
+## Thanks
+*gitver* has been inspired by [this Falkor's Makefile](github.com/Falkor/Makefiles/blob/devel/latex/Makefile), thanks!
+
 ## Bugs
 NOPE!! MY CODE HAS NO BUGS!11
 
