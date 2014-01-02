@@ -103,8 +103,8 @@ PENDING=$MAJOR.$MINOR.$PATCH
 function info {
 	# print info
 	echo Current tag: $LAST_TAG
-	echo Current version: v$CURR
 	echo Current build ID: $FULL_BUILD_ID
+	echo Current version: v$CURR
 	echo Possible next versions to bump to:
 	echo "  bump-major => v$NEXT_MAJOR"
 	echo "  bump-minor => v$NEXT_MINOR"
