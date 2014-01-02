@@ -37,6 +37,8 @@ function init {
 		mkdir -p "$TPL_DIR"
 		echo "Created template directory \"$TPL_DIR\""
 	fi
+
+	check_tag
 }
 
 # do init this repo
