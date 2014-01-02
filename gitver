@@ -56,7 +56,7 @@ fi
 # enumerate existing templates
 TEMPLATES=`ls $TPL_DIR 2> /dev/null`
 
-FULL_BUILD_ID=`cat .git/$(git symbolic-ref HEAD 2>/dev/null)|tr -d \n`
+FULL_BUILD_ID=`git rev-parse HEAD | tr -d \n`
 BUILD_ID=`echo $FULL_BUILD_ID | cut -c 1-8`
 LAST_TAG_COMMIT=`git rev-list --tags --max-count=1`
 LAST_TAG=`git describe --tags $LAST_TAG_COMMIT`
