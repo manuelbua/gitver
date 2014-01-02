@@ -9,6 +9,23 @@ function help {
 	echo "usage: `basename $0` <init|info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>"
 }
 
+function check_tag {
+	# check for at least one tag
+	TAGTEST=`git describe &> /dev/null ; echo $?`
+	if [ ! $TAGTEST -eq 0 ]; then
+		echo    "This repository requires ANY tag to be in the format vX.Y.Z or vX.Y.Z-$NEXT_SUFFIX"
+		echo -e "(TODO custom suffix in config)\n"
+		echo -e "An initial first tag is needed, you can create such first tag with the following command:"
+		echo -e "    git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'\n"
+		read -p "Would you like to do it now (y/n)? " -n 1 -r
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'
+			echo "Done."
+		fi
+		exit 1
+	fi
+}
+
 function init {
 	if [[ ! -z "$CONF_DIR" ]] && [[ ! -d "$CONF_DIR" ]]; then
 		mkdir -p "$CONF_DIR"
@@ -43,17 +60,7 @@ if [ ! -d "$CONF_DIR" ]; then
   exit 1
 fi
 
-# check for at least one tag
-TAGTEST=`git describe &> /dev/null ; echo $?`
-if [ ! $TAGTEST -eq 0 ]; then
-	echo    "This repository requires ANY tag in the format vX.Y.Z or vX.Y.Z-$NEXT_SUFFIX"
-	echo -e "(TODO custom suffix in config)\n"
-	echo -e "An initial first tag is needed, then you'll be able to choose how to bump versions.\n"
-	echo "You can create such first tag with the following command:"
-	echo "    git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'"
-	exit 1
-fi
-
+check_tag
 
 # enumerate existing templates
 TEMPLATES=`ls $TPL_DIR 2> /dev/null`
