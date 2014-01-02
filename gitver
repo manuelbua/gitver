@@ -2,6 +2,7 @@
 
 CONF_DIR="./.gitver"
 TPL_DIR="$CONF_DIR/templates"
+NEXT_SUFFIX="SNAPSHOT"
 
 # need to move these here to make them available
 function help {
@@ -40,6 +41,18 @@ if [ ! -d "$CONF_DIR" ]; then
   exit 1
 fi
 
+# check for at least one tag
+TAGTEST=`git describe &> /dev/null ; echo $?`
+if [ ! $TAGTEST -eq 0 ]; then
+	echo    "This repository requires ANY tag in the format vX.Y.Z or vX.Y.Z-$NEXT_SUFFIX"
+	echo -e "(TODO custom suffix in config)\n"
+	echo -e "An initial first tag is needed, then you'll be able to choose how to bump versions.\n"
+	echo "You can create such first tag with the following command:"
+	echo "    git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'"
+	exit 1
+fi
+
+
 # enumerate existing templates
 TEMPLATES=`ls $TPL_DIR 2> /dev/null`
 
@@ -70,7 +83,6 @@ fi
 CURR+=/$BUILD_ID
 
 # compute next versions
-NEXT_SUFFIX="SNAPSHOT"
 NEXT_MAJOR=$[MAJOR+1].0.0-$NEXT_SUFFIX
 NEXT_MINOR=$MAJOR.$[MINOR+1].0-$NEXT_SUFFIX
 NEXT_PATCH=$MAJOR.$MINOR.$[PATCH+1]-$NEXT_SUFFIX
