@@ -111,12 +111,12 @@ function info {
 	echo "  bump-patch => v$NEXT_PATCH"
 	if [ "$LAST_TAG" == "v$PENDING" ]; then
 		if [ $COMMIT_COUNT -eq 0 ]; then
-			echo "Next version: idleing ($LAST_TAG)"
+			echo "State: version idleing ($LAST_TAG)"
 		else
-			echo "Next version: unknown, $LAST_TAG-$COMMIT_COUNT (+$COMMIT_COUNT commits)"
+			echo "State: version unknown, $LAST_TAG-$COMMIT_COUNT (+$COMMIT_COUNT commits)"
 		fi
 	else
-		echo "Next version: $LAST_TAG => v$PENDING"
+		echo "State: pending finalize, $LAST_TAG => v$PENDING"
 	fi
 }
 
@@ -187,7 +187,7 @@ EOF
 
 
 #
-# main entrypoint
+# app entrypoint
 #
 
 case "$1" in
