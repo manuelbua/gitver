@@ -37,8 +37,6 @@ parser.add_argument('--list-templates',
                     default=False,
                     help="Enumerates available templates")
 
-options = parser.parse_args()
-
 
 def check_gitdir():
     # check this is a git repo
@@ -74,7 +72,8 @@ def get_repo_info():
         sys.exit(1)
 
     try:
-        full_build_id = sh.git('rev-parse', 'HEAD').stdout.replace('\n', '')
+        full_build_id = str(
+            sh.git('rev-parse', 'HEAD').stdout.replace('\n', ''))
     except ErrorReturnCode:
         print "Couldn't retrieve build id information"
         sys.exit(1)
@@ -89,6 +88,10 @@ def get_repo_info():
     vmin = int(vm[1])
     vpatch = int(vm[2])
     vcount = int(vm[3])
+    vhash = vm
+    if not full_build_id.startswith(vhash):
+        print "Hash problem detected: git describe reports " + vhash + \
+              ", but full id is " + full_build_id
     build_id = full_build_id[:8]
 
     return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
@@ -191,6 +194,7 @@ if __name__ == "__main__":
     check_gitdir()
 
     # handle options
+    options = parser.parse_args()
     if options.initialize_gitver:
         gitver_init()
 
