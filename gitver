@@ -5,6 +5,7 @@ import re
 import sys
 import argparse
 import sh
+import pickle
 from sh import ErrorReturnCode
 from string import Template
 
@@ -13,8 +14,14 @@ cfgdir = ".gitver/"
 gitdir = ".git/"
 tpldir = os.path.join(cfgdir, 'templates')
 
+# file where to store NEXT user-defined version strings for the specified
+# TAG key
+next_store_file = os.path.join(cfgdir, ".next_store")
+
 next_suffix = "NEXT"
+next_custom_suffix = "SNAPSHOT"
 version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
+custom_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 
 parser = argparse.ArgumentParser(description="Manages git version strings")
 
@@ -31,6 +38,24 @@ parser.add_argument('--update',
                     help="Perform simple keyword substitution on the specified "
                          "template file(s) and place it to the path described "
                          "by the first line in the template.")
+
+parser.add_argument('--next',
+                    dest='next_version_numbers',
+                    type=str,
+                    default='',
+                    help="Sets the NEXT version numbers for the currently "
+                         "reachable last tag. This will suppress the usage of "
+                         "the \"-" + next_suffix + "\" suffix and will use the "
+                                                   "supplied one instead.")
+
+parser.add_argument('--clean',
+                    dest='clean_next_version',
+                    action='store_true',
+                    default=False,
+                    help="Reset the custom string for the currently active"
+                         "tag to a clean state. Usage of the \"-" +
+                         next_suffix + "\" suffix is restored.")
+
 parser.add_argument('--list-templates',
                     dest='list_templates',
                     action='store_true',
@@ -56,8 +81,8 @@ def check_cfgdir():
 def get_repo_info():
     # retrieve repository information
     try:
-        tagver = sh.git('describe', '--long', '--match=v*').stdout.replace(
-            '\n', '')
+        tagver = sh.git(
+            'describe', '--long', '--match=v*').stdout.replace('\n', '')
     except ErrorReturnCode:
         print "Error, this repository is required to define tags in the " \
               "format vX.Y.Z"
@@ -66,14 +91,22 @@ def get_repo_info():
     try:
         vm = re.match(version_matcher, tagver)
         vm = vm.groups()
-    except (ErrorReturnCode, AttributeError):
+    except AttributeError:
         print "It looks like the tag format isn't vX.Y.Z, please check your " \
               "tags (" + tagver + ")"
         sys.exit(1)
 
+    # extract version string
+    vmaj = int(vm[0])
+    vmin = int(vm[1])
+    vpatch = int(vm[2])
+    vcount = int(vm[3])
+    vhash = vm[4]
+
     try:
         full_build_id = str(
             sh.git('rev-parse', 'HEAD').stdout.replace('\n', ''))
+        build_id = full_build_id[:8]
     except ErrorReturnCode:
         print "Couldn't retrieve build id information"
         sys.exit(1)
@@ -83,26 +116,40 @@ def get_repo_info():
         print vm
         sys.exit(1)
 
-    # build version string
-    vmaj = int(vm[0])
-    vmin = int(vm[1])
-    vpatch = int(vm[2])
-    vcount = int(vm[3])
-    vhash = vm
     if not full_build_id.startswith(vhash):
         print "Hash problem detected: git describe reports " + vhash + \
               ", but full id is " + full_build_id
-    build_id = full_build_id[:8]
+
+    try:
+        last_tag_id = sh.git(
+            'rev-list', '--tags=v*', '--max-count=1').stdout.replace('\n', '')
+        last_tag = sh.git(
+            'describe', '--tags', last_tag_id).stdout.replace('\n', '')
+    except ErrorReturnCode:
+        print "Error, couldn't retrieve latest tag"
+        sys.exit(1)
 
     return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
-            'build-id': build_id, 'full-build-id': full_build_id}
+            'build-id': build_id, 'full-build-id': full_build_id,
+            'last-tag-id': last_tag_id, 'last-tag': last_tag}
 
 
-def build_version(repo):
-    version = "%d.%d.%d" % (repo['maj'], repo['min'], repo['patch'])
-    if repo['count'] > 0:
-        version += "-" + next_suffix + "-" + str(repo['count'])
+def build_version(repo, next_custom=''):
+    in_next = repo['count'] > 0
+    if in_next and not next_custom is None and len(next_custom) > 0:
+        version = next_custom
+        if len(next_custom_suffix) > 0:
+            version += "-" + next_custom_suffix
+    else:
+        version = "%d.%d.%d" % (repo['maj'], repo['min'], repo['patch'])
+        if in_next:
+            version += "-" + next_suffix
+
+    if in_next:
+        version += "-" + str(repo['count'])
+
     version += "/" + repo['build-id']
+
     return version
 
 
@@ -145,7 +192,7 @@ def stringify(d):
     return ret
 
 
-def parse_templates(templates, repo):
+def parse_templates(templates, repo, next_custom):
     for t in templates.split(' '):
         tpath = template_path(t)
         if os.path.exists(tpath):
@@ -167,7 +214,7 @@ def parse_templates(templates, repo):
 
             xformed = Template("".join(lines))
             keywords = {
-                'CURRENT_VERSION': build_version(repo),
+                'CURRENT_VERSION': build_version(repo, next_custom),
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
                 'MAJOR': repo['maj'],
@@ -190,21 +237,96 @@ def parse_templates(templates, repo):
             print "Couldn't find the specified \"" + t + "\" template"
 
 
-if __name__ == "__main__":
+def load_next_store(store_file):
+    data = dict()
+
+    try:
+        fp = open(store_file, 'r')
+        data = pickle.load(fp)
+        fp.close()
+    except IOError:
+        pass
+
+    return data
+
+
+def save_next_store(store_file, data):
+    try:
+        fp = open(store_file, 'w')
+        pickle.dump(data, fp)
+        fp.close()
+    except IOError:
+        print "Couldn't update NEXT storage (" + store_file + ")"
+
+
+def main():
     check_gitdir()
 
     # handle options
     options = parser.parse_args()
     if options.initialize_gitver:
         gitver_init()
+        sys.exit()
 
+    # setup
     check_cfgdir()
-
+    next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
+
+    # global data
+    last_tag = repo_info['last-tag']
+    has_next_custom = last_tag in next_store.keys()
+    next_custom = next_store[last_tag] if has_next_custom else None
+
+    # list available templates
     if options.list_templates:
         list_templates()
-    elif len(options.templates) > 0:
-        parse_templates(options.templates, repo_info)
+        sys.exit()
+
+    # clean NEXT custom version string for this tag
+    if options.clean_next_version:
+        if has_next_custom:
+            del next_store[last_tag]
+            save_next_store(next_store_file, next_store)
+            print "Cleaned up custom string version \"" + next_custom + \
+                  "\" for tag \"" + last_tag + "\""
+        else:
+            print "No custom string version to clean for tag \"" + last_tag + \
+                  "\""
+        sys.exit()
+
+    # set NEXT custom version string for this tag
+    if len(options.next_version_numbers) > 0:
+        vn = options.next_version_numbers
+        try:
+            m = re.match(custom_version_matcher, vn).groups()
+            if len(m) != 3:
+                raise AttributeError
+        except AttributeError:
+            print "Please specify valid version numbers.\nThe expected " \
+                  "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1"
+            sys.exit(1)
+
+        custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
+        next_store[last_tag] = custom
+        save_next_store(next_store_file, next_store)
+        print "Set NEXT version string to " + custom
+        sys.exit()
+
+    # update template(s)
+    if len(options.templates) > 0:
+        parse_templates(options.templates, repo_info, next_custom)
+        sys.exit()
+
+    # default
+    print "Current tag: " + last_tag
+    if has_next_custom:
+        print "NEXT version string: v" + next_custom
+        print "Current version: v" + build_version(repo_info, next_custom)
     else:
-        # default
+        print "No NEXT version string found"
         print "Current version: v" + build_version(repo_info)
+
+
+if __name__ == "__main__":
+    main()
