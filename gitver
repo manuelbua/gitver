@@ -56,7 +56,7 @@ parser.add_argument('--clean',
                          "tag to a clean state. Usage of the \"-" +
                          next_suffix + "\" suffix is restored.")
 
-parser.add_argument('--list-templates',
+parser.add_argument('--list',
                     dest='list_templates',
                     action='store_true',
                     default=False,
