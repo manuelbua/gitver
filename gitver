@@ -1,235 +1,206 @@
-#!/bin/bash
+#!/usr/bin/env python2
 
-CONF_DIR="./.gitver"
-TPL_DIR="$CONF_DIR/templates"
-NEXT_SUFFIX="SNAPSHOT"
+import os
+import re
+import sys
+import argparse
+import sh
+from sh import ErrorReturnCode
+from string import Template
 
-# need to move these here to make them available
-function help {
-	echo "usage: `basename $0` <init|info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>"
-}
+this_script = os.path.basename(__file__)
+cfgdir = ".gitver/"
+gitdir = ".git/"
+tpldir = os.path.join(cfgdir, 'templates')
 
-function check_tag {
-	# check for at least one tag
-	TAGTEST=`git describe &> /dev/null ; echo $?`
-	if [ ! $TAGTEST -eq 0 ]; then
-		echo    "This repository requires ANY tag to be in the format vX.Y.Z or vX.Y.Z-$NEXT_SUFFIX"
-		echo -e "(TODO custom suffix in config)\n"
-		echo -e "An initial first tag is needed, you can create such first tag with the following command:"
-		echo -e "    git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'\n"
-		read -p "Would you like to do it now at HEAD (y/n)? " -n 1 -r
-		echo
-		if [[ $REPLY =~ ^[Yy]$ ]]; then
-			git tag -a v0.0.1-$NEXT_SUFFIX -m 'Initial version'
-			echo "Done."
-		fi
-		exit 1
-	fi
-}
+next_suffix = "NEXT"
+version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
 
-function init {
-	if [[ ! -z "$CONF_DIR" ]] && [[ ! -d "$CONF_DIR" ]]; then
-		mkdir -p "$CONF_DIR"
-		echo "Created configuration directory \"$CONF_DIR\""
-	fi
+parser = argparse.ArgumentParser(description="Manages git version strings")
 
-	if [[ ! -z "$TPL_DIR" ]] && [[ ! -d "$TPL_DIR" ]]; then
-		mkdir -p "$TPL_DIR"
-		echo "Created template directory \"$TPL_DIR\""
-	fi
+parser.add_argument('--init',
+                    dest='initialize_gitver',
+                    default=False,
+                    action="store_true",
+                    help="Perform the first initialization of gitver")
 
-	check_tag
-}
+parser.add_argument('--update',
+                    dest='templates',
+                    default='',
+                    type=str,
+                    help="Perform simple keyword substitution on the specified"
+                         "template file(s) and place it to the path described"
+                         "by the first line in the template.")
+parser.add_argument('--list-templates',
+                    dest='list_templates',
+                    action='store_true',
+                    default=False,
+                    help="Enumerates available templates")
 
-# do init this repo
-case "$1" in
-	init)
-		init
-		exit 0
-		;;
-esac
-
-# check repo existance
-if [ ! -d ./.git ]; then
-  echo "Please run this tool from within the root directory of your project, where the .git directory resides."
-  help
-  exit 1
-fi
-
-# check for conf dir
-if [ ! -d "$CONF_DIR" ]; then
-  echo -e "Please run \"`basename $0` init\" first."
-  help
-  exit 1
-fi
-
-check_tag
-
-# enumerate existing templates
-TEMPLATES=`ls $TPL_DIR 2> /dev/null`
-
-FULL_BUILD_ID=`git rev-parse HEAD | tr -d \n`
-BUILD_ID=`echo $FULL_BUILD_ID | cut -c 1-8`
-LAST_TAG_COMMIT=`git rev-list --tags --max-count=1`
-LAST_TAG=`git describe --tags $LAST_TAG_COMMIT`
-COMMIT_COUNT=`git log --oneline $LAST_TAG..HEAD | wc -l`
-TAG_PREFIX="v"
-
-# extract current version
-#VERSION=0.9.4
-VERSION=`echo $LAST_TAG | sed "s/^$TAG_PREFIX//"`
-MAJOR=`echo $VERSION | sed "s/^\([0-9]*\).*/\1/"`
-MINOR=`echo $VERSION | sed "s/[0-9]*\.\([0-9]*\).*/\1/"`
-PATCH=`echo $VERSION | sed "s/[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/"`
-NOTE=`echo $VERSION | grep -o "[a-zA-Z]*"`
-CURRENT_VERSION=$MAJOR.$MINOR.$PATCH
-
-if [ ! -z $NOTE ]; then
-	CURRENT_VERSION+=-$NOTE
-fi
-
-if [ ! $COMMIT_COUNT -eq 0 ]; then
-	CURRENT_VERSION+=-$COMMIT_COUNT
-fi
-
-CURRENT_VERSION+=/$BUILD_ID
-
-# compute next versions
-NEXT_MAJOR=$[MAJOR+1].0.0-$NEXT_SUFFIX
-NEXT_MINOR=$MAJOR.$[MINOR+1].0-$NEXT_SUFFIX
-NEXT_PATCH=$MAJOR.$MINOR.$[PATCH+1]-$NEXT_SUFFIX
-PENDING=$MAJOR.$MINOR.$PATCH
-
-function info {
-	# print info
-	echo Current tag: $LAST_TAG
-	echo Current build ID: $FULL_BUILD_ID
-	echo Current version: v$CURRENT_VERSION
-	echo Possible next versions to bump to:
-	echo "  bump-major => v$NEXT_MAJOR"
-	echo "  bump-minor => v$NEXT_MINOR"
-	echo "  bump-patch => v$NEXT_PATCH"
-	if [ "$LAST_TAG" == "v$PENDING" ]; then
-		if [ $COMMIT_COUNT -eq 0 ]; then
-			echo "State: version idleing ($LAST_TAG)"
-		else
-			echo "State: version unknown, $LAST_TAG-$COMMIT_COUNT (+$COMMIT_COUNT commits)"
-		fi
-	else
-		echo "State: pending finalize, $LAST_TAG => v$PENDING"
-	fi
-}
-
-function bump_major {
-	echo "Bumping from $LAST_TAG to $NEXT_MAJOR"
-	if [ -z "$NOTE" ]; then
-		git tag -a v$NEXT_MAJOR -m "Bumping from $LAST_TAG to v$NEXT_MAJOR"
-		echo "Done, `git describe --long`"
-	else
-		echo "Cannot bump $LAST_TAG"
-	fi
-}
-
-function bump_minor {
-	echo "Bumping from $LAST_TAG to $NEXT_MINOR"
-	if [ -z "$NOTE" ]; then
-		git tag -a v$NEXT_MINOR -m "Bumping from $LAST_TAG to v$NEXT_MINOR"
-		echo "Done, `git describe --long`"
-	else
-		echo "Cannot bump $LAST_TAG"
-	fi
-}
-
-function bump_patch {
-	echo "Bumping from $LAST_TAG to $NEXT_PATCH"
-	if [ -z "$NOTE" ]; then
-		git tag -a v$NEXT_PATCH -m "Bumping from $LAST_TAG to v$NEXT_PATCH"
-		echo "Done, `git describe --long`"
-	else
-		echo "Cannot bump $LAST_TAG"
-	fi
-}
-
-function finalize_bump {
-	if [ "$NOTE" == "$NEXT_SUFFIX" ]; then
-		git tag -a v$PENDING -m "Bumping from $LAST_TAG to v$PENDING"
-		echo "Done, `git describe --long`"
-	else
-		echo "Cannot finalize $LAST_TAG, expected a valid suffix (-$NEXT_SUFFIX)"
-	fi
-}
-
-function update_version_info {
-	for T in $1; do
-		# search for template
-		TPL="$TPL_DIR/$T"
-		echo -n "Processing \"$TPL\""
-		if [ ! -f "$TPL" ]; then
-			echo "\nThe specified template $TPL doesn't exists"
-			exit 1
-		fi
-
-		# first line identify the output file
-		OUTFILE=`head -n1 $TPL | tr -d '#' | tr -d [:blank:]`
-		if [ -z "$OUTFILE" ]; then
-			echo "\nCouldn't read output file from the specified template \"$TPL\""
-			exit 1
-		fi
-
-		# perform bash variable substitution in template file
-		eval "tail -n+2 <<EOF
-$(<$TPL)
-EOF
-" 2> /dev/null > $OUTFILE
-		echo ", wrote file file://$OUTFILE ("`du -sh "$OUTFILE" | awk '{ print $1}'`")"
-	done
-}
+options = parser.parse_args()
 
 
-#
-# app entrypoint
-#
+def check_gitdir():
+    # check this is a git repo
+    if not os.path.exists(gitdir):
+        print "Please run this tool from within the root directory of your " \
+              "project, where the .git directory resides."
+        sys.exit(1)
 
-case "$1" in
-	info)
-		info
-		;;
 
-	bump-major)
-		bump_major
-		;;
+def check_cfgdir():
+    # check config directory exists
+    if not os.path.exists(cfgdir):
+        print "Please run \"" + this_script + " --init\" first."
+        sys.exit(1)
 
-	bump-minor)
-		bump_minor
-		;;
 
-	bump-patch)
-		bump_patch
-		;;
+def get_repo_info():
+    # retrieve repository information
+    try:
+        tagver = sh.git('describe', '--long', '--match=v*').stdout.replace(
+            '\n', '')
+    except ErrorReturnCode:
+        print "Error, this repository is required to define tags in the " \
+              "format vX.Y.Z"
+        sys.exit(1)
 
-	finalize-bump)
-		finalize_bump
-		;;
+    try:
+        vm = re.match(version_matcher, tagver)
+        vm = vm.groups()
+    except (ErrorReturnCode, AttributeError):
+        print "It looks like the tag format isn't vX.Y.Z, please check your " \
+              "tags (" + tagver + ")"
+        sys.exit(1)
 
-	update-versioninfo)
-		if [ -z "$TEMPLATES" ]; then
-			echo "No valid templates found, please add one to your templates directory ($TPL_DIR)"
-		fi
+    try:
+        full_build_id = sh.git('rev-parse', 'HEAD').stdout.replace('\n', '')
+    except ErrorReturnCode:
+        print "Couldn't retrieve build id information"
+        sys.exit(1)
 
-		if [ -z "$2" ]; then
-			echo -n "Please specify a valid template"
-			if [ ! -z "$TEMPLATES" ]; then
-				echo ", list of available templates:"
-				for T in $TEMPLATES; do
-					echo "    $TPL_DIR/$T"
-				done
-			fi
+    if len(vm) < 5:
+        print "There isn't enough version information"
+        print vm
+        sys.exit(1)
 
-			exit 1
-		fi
-		update_version_info "$2"
-		;;
-	*)
-		help
-		;;
-esac
+    # build version string
+    vmaj = int(vm[0])
+    vmin = int(vm[1])
+    vpatch = int(vm[2])
+    vcount = int(vm[3])
+    build_id = full_build_id[:8]
+
+    return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
+            'build-id': build_id, 'full-build-id': full_build_id}
+
+
+def build_version(repo):
+    version = "%d.%d.%d" % (repo['maj'], repo['min'], repo['patch'])
+    if repo['count'] > 0:
+        version += "-" + next_suffix + "-" + str(repo['count'])
+    version += "/" + repo['build-id']
+    return version
+
+
+def gitver_init():
+    os.makedirs(cfgdir)
+    os.makedirs(tpldir)
+    if not os.path.exists(cfgdir):
+        print "Couldn't create configuration directory " + cfgdir
+        sys.exit(1)
+    else:
+        print "Created " + cfgdir
+
+    if not os.path.exists(tpldir):
+        print "Couldn't create template directory " + tpldir
+        sys.exit(1)
+    else:
+        print "Created " + tpldir
+
+    print "Done."
+
+
+def template_path(name):
+    return os.path.join(tpldir, name)
+
+
+def list_templates():
+    tpls = [f for f in os.listdir(tpldir) if os.path.isfile(template_path(f))]
+    if len(tpls) > 0:
+        print "Available templates:"
+        for t in tpls:
+            print "    " + t
+    else:
+        print "No templates available in " + tpldir
+
+
+def stringify(d):
+    ret = {}
+    for k, v in d.items():
+        ret[k] = v if type(v) == str else str(v)
+    return ret
+
+
+def parse_templates(templates, repo):
+    for t in templates.split(' '):
+        tpath = template_path(t)
+        if os.path.exists(tpath):
+            with open(tpath, 'r') as fp:
+                lines = fp.readlines()
+
+            if len(lines) < 2:
+                print "The specified template is not valid"
+                return
+
+            output = str(lines[0]).strip(' #\n')
+            if not os.path.exists(os.path.dirname(output)):
+                print "The specified template output \"" + output + "\"" +\
+                      "doesn't exists."
+
+            print "Processing template \"" + t + "\" for " + output + "..."
+
+            lines = lines[1:]
+
+            xformed = Template("".join(lines))
+            keywords = {
+                'CURRENT_VERSION': build_version(repo),
+                'BUILD_ID': repo['build-id'],
+                'FULL_BUILD_ID': repo['full-build-id'],
+                'MAJOR': repo['maj'],
+                'MINOR': repo['min'],
+                'PATCH': repo['patch'],
+                'COMMIT_COUNT': repo['count']
+            }
+
+            res = xformed.substitute(keywords)
+            try:
+                fp = open(output, 'w')
+                fp.write(res)
+                fp.close()
+            except IOError:
+                print "Couldn't write file \"" + output + "\""
+
+            stat = os.stat(output)
+            print "Done, " + str(stat.st_size) + " bytes written"
+        else:
+            print "Couldn't find the specified \"" + t + "\" template"
+
+
+if __name__ == "__main__":
+    check_gitdir()
+
+    # handle options
+    if options.initialize_gitver:
+        gitver_init()
+
+    check_cfgdir()
+
+    repo_info = get_repo_info()
+    if options.list_templates:
+        list_templates()
+    elif len(options.templates) > 0:
+        parse_templates(options.templates, repo_info)
+    else:
+        # default
+        print "Current version: v" + build_version(repo_info)
