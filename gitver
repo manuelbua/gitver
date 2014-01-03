@@ -121,17 +121,14 @@ def get_repo_info():
               ", but full id is " + full_build_id
 
     try:
-        last_tag_id = sh.git(
-            'rev-list', '--tags=v*', '--max-count=1').stdout.replace('\n', '')
-        last_tag = sh.git(
-            'describe', '--tags', last_tag_id).stdout.replace('\n', '')
+        last_tag = sh.git('describe', '--abbrev=0').stdout.replace('\n', '')
     except ErrorReturnCode:
         print "Error, couldn't retrieve latest tag"
         sys.exit(1)
 
     return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
             'build-id': build_id, 'full-build-id': full_build_id,
-            'last-tag-id': last_tag_id, 'last-tag': last_tag}
+            'last-tag': last_tag}
 
 
 def build_version(repo, next_custom=''):
@@ -272,6 +269,7 @@ def main():
     check_cfgdir()
     next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
+    # print repo_info
 
     # global data
     last_tag = repo_info['last-tag']
