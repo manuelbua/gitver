@@ -28,8 +28,8 @@ parser.add_argument('--update',
                     dest='templates',
                     default='',
                     type=str,
-                    help="Perform simple keyword substitution on the specified"
-                         "template file(s) and place it to the path described"
+                    help="Perform simple keyword substitution on the specified "
+                         "template file(s) and place it to the path described "
                          "by the first line in the template.")
 parser.add_argument('--list-templates',
                     dest='list_templates',
