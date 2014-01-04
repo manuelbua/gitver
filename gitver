@@ -4,12 +4,19 @@ import os
 import re
 import sys
 import argparse
-import sh
 import pickle
-from sh import ErrorReturnCode
 from string import Template
+from os.path import dirname, realpath, abspath, basename
+from git import get_repo_info
 
-this_script = os.path.basename(__file__)
+this_script = basename(__file__)
+
+
+def setup_env():
+    # append the path where the real binary resides to the actual sys.path
+    sys.path.append(dirname(realpath(__file__)))
+setup_env()
+
 cfgdir = ".gitver/"
 gitdir = ".git/"
 tpldir = os.path.join(cfgdir, 'templates')
@@ -20,47 +27,7 @@ next_store_file = os.path.join(cfgdir, ".next_store")
 
 next_suffix = "NEXT"
 next_custom_suffix = "SNAPSHOT"
-version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
 custom_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
-
-parser = argparse.ArgumentParser(description="Manages git version strings")
-
-parser.add_argument('--init',
-                    dest='initialize_gitver',
-                    default=False,
-                    action="store_true",
-                    help="Perform the first initialization of gitver")
-
-parser.add_argument('--update',
-                    dest='templates',
-                    default='',
-                    type=str,
-                    help="Perform simple keyword substitution on the specified "
-                         "template file(s) and place it to the path described "
-                         "by the first line in the template.")
-
-parser.add_argument('--next',
-                    dest='next_version_numbers',
-                    type=str,
-                    default='',
-                    help="Sets the NEXT version numbers for the currently "
-                         "reachable last tag. This will suppress the usage of "
-                         "the \"-" + next_suffix + "\" suffix and will use the "
-                                                   "supplied one instead.")
-
-parser.add_argument('--clean',
-                    dest='clean_next_version',
-                    action='store_true',
-                    default=False,
-                    help="Reset the custom string for the currently active"
-                         "tag to a clean state. Usage of the \"-" +
-                         next_suffix + "\" suffix is restored.")
-
-parser.add_argument('--list',
-                    dest='list_templates',
-                    action='store_true',
-                    default=False,
-                    help="Enumerates available templates")
 
 
 def check_gitdir():
@@ -78,60 +45,7 @@ def check_cfgdir():
         sys.exit(1)
 
 
-def get_repo_info():
-    # retrieve repository information
-    try:
-        tagver = sh.git(
-            'describe', '--long', '--match=v*').stdout.replace('\n', '')
-    except ErrorReturnCode:
-        print "Error, this repository is required to define tags in the " \
-              "format vX.Y.Z"
-        sys.exit(1)
-
-    try:
-        vm = re.match(version_matcher, tagver)
-        vm = vm.groups()
-    except AttributeError:
-        print "It looks like the tag format isn't vX.Y.Z, please check your " \
-              "tags (" + tagver + ")"
-        sys.exit(1)
-
-    # extract version string
-    vmaj = int(vm[0])
-    vmin = int(vm[1])
-    vpatch = int(vm[2])
-    vcount = int(vm[3])
-    vhash = vm[4]
-
-    try:
-        full_build_id = str(
-            sh.git('rev-parse', 'HEAD').stdout.replace('\n', ''))
-        build_id = full_build_id[:8]
-    except ErrorReturnCode:
-        print "Couldn't retrieve build id information"
-        sys.exit(1)
-
-    if len(vm) < 5:
-        print "There isn't enough version information"
-        print vm
-        sys.exit(1)
-
-    if not full_build_id.startswith(vhash):
-        print "Hash problem detected: git describe reports " + vhash + \
-              ", but full id is " + full_build_id
-
-    try:
-        last_tag = sh.git('describe', '--abbrev=0').stdout.replace('\n', '')
-    except ErrorReturnCode:
-        print "Error, couldn't retrieve latest tag"
-        sys.exit(1)
-
-    return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
-            'build-id': build_id, 'full-build-id': full_build_id,
-            'last-tag': last_tag}
-
-
-def build_version(repo, next_custom=''):
+def build_version_string(repo, next_custom=''):
     in_next = repo['count'] > 0
     if in_next and not next_custom is None and len(next_custom) > 0:
         version = next_custom
@@ -150,36 +64,8 @@ def build_version(repo, next_custom=''):
     return version
 
 
-def gitver_init():
-    os.makedirs(cfgdir)
-    os.makedirs(tpldir)
-    if not os.path.exists(cfgdir):
-        print "Couldn't create configuration directory " + cfgdir
-        sys.exit(1)
-    else:
-        print "Created " + cfgdir
-
-    if not os.path.exists(tpldir):
-        print "Couldn't create template directory " + tpldir
-        sys.exit(1)
-    else:
-        print "Created " + tpldir
-
-    print "Done."
-
-
 def template_path(name):
     return os.path.join(tpldir, name)
-
-
-def list_templates():
-    tpls = [f for f in os.listdir(tpldir) if os.path.isfile(template_path(f))]
-    if len(tpls) > 0:
-        print "Available templates:"
-        for t in tpls:
-            print "    " + t
-    else:
-        print "No templates available in " + tpldir
 
 
 def parse_templates(templates, repo, next_custom):
@@ -204,7 +90,7 @@ def parse_templates(templates, repo, next_custom):
 
             xformed = Template("".join(lines))
             keywords = {
-                'CURRENT_VERSION': build_version(repo, next_custom),
+                'CURRENT_VERSION': build_version_string(repo, next_custom),
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
                 'MAJOR': repo['maj'],
@@ -251,73 +137,176 @@ def save_next_store(store_file, data):
 
 def main():
     check_gitdir()
+    if len(sys.argv) < 2:
+        sys.argv.insert(1, 'info')
+    args = parse_args()
+    return args.func(args)
 
-    # handle options
-    options = parser.parse_args()
-    if options.initialize_gitver:
-        gitver_init()
-        sys.exit()
 
-    # setup
+def parse_args():
+    parser = argparse.ArgumentParser()
+    sp = parser.add_subparsers(title='Valid commands')
+
+    add_command(sp, 'init', "Create gitver's configuration directory", cmd_init)
+
+    add_command(sp, 'info', "Print version information for this repository",
+                cmd_info)
+
+    add_command(sp, 'list-templates', "Enumerates available templates",
+                cmd_list_templates)
+
+    add_command(sp, 'list-next', "Enumerates NEXT custom strings",
+                cmd_list_next)
+
+    p = add_command(sp, 'update', "Perform simple keyword substitution on the "
+                                  "specified template file(s) and place it to "
+                                  "the path described by the first line in the "
+                                  "template.", cmd_build_template)
+    p.add_argument('templates', default='', type=str)
+
+    p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
+                                "currently reachable last tag. This will "
+                                "suppress the usage of the \"-" + next_suffix +
+                                "\" suffix, enable use of the custom \"-" +
+                                next_custom_suffix +
+                                "\" suffix and will use the supplied version "
+                                "numbers instead.", cmd_next)
+    p.add_argument('next_version_numbers', default='', type=str)
+
+    p = add_command(sp, 'clean', "Resets the NEXT custom string for the "
+                                 "currently active tag, or the specified tag, "
+                                 "to a clean state. Usage of the \"-" +
+                                 next_suffix + "\" suffix is restored.",
+                    cmd_clean)
+    p.add_argument('tag', nargs='?', type=str, default='')
+
+    add_command(sp, 'cleanall', "Resets all the NEXT custom strings for this"
+                                "repository. Usage of the \"-" + next_suffix +
+                                "\" suffix is restored.", cmd_cleanall)
+    return parser.parse_args()
+
+
+def add_command(parent, name, desc, func):
+    p = parent.add_parser(name, help=desc)
+    p.set_defaults(func=func)
+    return p
+
+
+def cmd_init(args):
+    if not os.path.exists(cfgdir):
+        os.makedirs(cfgdir)
+        print "Created " + cfgdir
+
+    if not os.path.exists(tpldir):
+        os.makedirs(tpldir)
+        print "Created " + tpldir
+        sys.exit(1)
+
+    print "Done."
+
+
+def cmd_list_templates(args):
+    check_cfgdir()
+
+    tpls = [f for f in os.listdir(tpldir) if os.path.isfile(template_path(f))]
+    if len(tpls) > 0:
+        print "Available templates:"
+        for t in tpls:
+            print "    " + t
+    else:
+        print "No templates available in " + tpldir
+
+
+def cmd_info(args):
     check_cfgdir()
     next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
-    # print repo_info
-
-    # global data
     last_tag = repo_info['last-tag']
     has_next_custom = last_tag in next_store.keys()
     next_custom = next_store[last_tag] if has_next_custom else None
 
-    # list available templates
-    if options.list_templates:
-        list_templates()
-        sys.exit()
-
-    # clean NEXT custom version string for this tag
-    if options.clean_next_version:
-        if has_next_custom:
-            del next_store[last_tag]
-            save_next_store(next_store_file, next_store)
-            print "Cleaned up custom string version \"" + next_custom + \
-                  "\" for tag \"" + last_tag + "\""
-        else:
-            print "No custom string version to clean for tag \"" + last_tag + \
-                  "\""
-        sys.exit()
-
-    # set NEXT custom version string for this tag
-    if len(options.next_version_numbers) > 0:
-        vn = options.next_version_numbers
-        try:
-            m = re.match(custom_version_matcher, vn).groups()
-            if len(m) != 3:
-                raise AttributeError
-        except AttributeError:
-            print "Please specify valid version numbers.\nThe expected " \
-                  "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1"
-            sys.exit(1)
-
-        custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
-        next_store[last_tag] = custom
-        save_next_store(next_store_file, next_store)
-        print "Set NEXT version string to " + custom
-        sys.exit()
-
-    # update template(s)
-    if len(options.templates) > 0:
-        parse_templates(options.templates, repo_info, next_custom)
-        sys.exit()
-
-    # default
     print "Current tag: " + last_tag
     if has_next_custom:
         print "NEXT version string: v" + next_custom
-        print "Current version: v" + build_version(repo_info, next_custom)
+        print "Current version: v" + build_version_string(repo_info, next_custom)
     else:
         print "No NEXT version string found"
-        print "Current version: v" + build_version(repo_info)
+        print "Current version: v" + build_version_string(repo_info)
 
+
+def cmd_build_template(args):
+    check_cfgdir()
+    next_store = load_next_store(next_store_file)
+    repo_info = get_repo_info()
+    last_tag = repo_info['last-tag']
+    has_next_custom = last_tag in next_store.keys()
+    next_custom = next_store[last_tag] if has_next_custom else None
+
+    parse_templates(args.templates, repo_info, next_custom)
+
+
+def cmd_next(args):
+    check_cfgdir()
+    next_store = load_next_store(next_store_file)
+    repo_info = get_repo_info()
+
+    last_tag = repo_info['last-tag']
+
+    vn = args.next_version_numbers
+    try:
+        m = re.match(custom_version_matcher, vn).groups()
+        if len(m) != 3:
+            raise AttributeError
+    except AttributeError:
+        print "Please specify valid version numbers.\nThe expected " \
+              "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1"
+        sys.exit(1)
+
+    custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
+    next_store[last_tag] = custom
+    save_next_store(next_store_file, next_store)
+    print "Set NEXT version string to " + custom
+
+
+def cmd_clean(args):
+    check_cfgdir()
+    next_store = load_next_store(next_store_file)
+    if len(args.tag) > 0:
+        tag = args.tag
+    else:
+        repo_info = get_repo_info()
+        tag = repo_info['last-tag']
+
+    has_custom = tag in next_store.keys()
+    next_custom = next_store[tag] if has_custom else None
+
+    if has_custom:
+        del next_store[tag]
+        save_next_store(next_store_file, next_store)
+        print "Cleaned up custom string version \"" + next_custom + \
+              "\" for tag \"" + tag + "\""
+    else:
+        print "No custom string version found for tag \"" + tag + "\""
+
+
+def cmd_cleanall(args):
+    check_cfgdir()
+    if os.path.exists(next_store_file):
+        os.unlink(next_store_file)
+        print "Custom strings removed."
+    else:
+        print "No NEXT custom strings found."
+
+
+def cmd_list_next(args):
+    check_cfgdir()
+    next_store = load_next_store(next_store_file)
+    if len(next_store) > 0:
+        print "Currently set NEXT custom strings:"
+        for tag, vstring in next_store.items():
+            print "    %s => %s" % (tag, vstring)
+    else:
+        print "No NEXT custom strings set."
 
 if __name__ == "__main__":
     main()
