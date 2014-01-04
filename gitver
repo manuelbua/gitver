@@ -182,13 +182,6 @@ def list_templates():
         print "No templates available in " + tpldir
 
 
-def stringify(d):
-    ret = {}
-    for k, v in d.items():
-        ret[k] = v if type(v) == str else str(v)
-    return ret
-
-
 def parse_templates(templates, repo, next_custom):
     for t in templates.split(' '):
         tpath = template_path(t)
