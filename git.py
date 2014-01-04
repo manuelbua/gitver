@@ -9,6 +9,7 @@ import sys
 import re
 import sh
 from sh import ErrorReturnCode
+from termcolors import err
 
 version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
 
@@ -47,8 +48,8 @@ def get_repo_info():
     # retrieve basic repository information
     desc = describe()
     if not desc:
-        print "Error, this repository is required to define tags in the " \
-              "format vX.Y.Z"
+        print err("Error, this repository is required to define tags in the "
+                  "format vX.Y.Z")
         sys.exit(1)
 
     # extract version string
@@ -60,17 +61,17 @@ def get_repo_info():
 
     full_build_id = get_build_id()
     if not full_build_id:
-        print "Couldn't retrieve build id information"
+        print err("Couldn't retrieve build id information")
         sys.exit(1)
 
     # sanity check
     if not full_build_id.startswith(vhash):
-        print "Hash problem detected: git describe reports " + vhash + \
-              ", but full id is " + full_build_id
+        print err("Hash problem detected: git describe reports " + vhash +
+                  ", but full id is " + full_build_id)
 
     tag = last_tag()
     if not tag:
-        print "Couldn't retrieve the latest tag"
+        print err("Couldn't retrieve the latest tag")
         sys.exit(1)
 
     return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
