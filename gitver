@@ -1,5 +1,9 @@
 #!/usr/bin/env python2
 
+"""
+git version strings management for humans
+2014 Manuel Bua
+"""
 import os
 import re
 import sys
@@ -8,40 +12,74 @@ import pickle
 from string import Template
 from os.path import dirname, realpath, abspath, basename
 from git import get_repo_info
+from termcolors import *
 
 this_script = basename(__file__)
 
+# try import version information
+try:
+    from version import gitver_version, gitver_buildid
+except ImportError:
+    gitver_version = 'n/a'
+    gitver_buildid = 'n/a'
 
-def setup_env():
-    # append the path where the real binary resides to the actual sys.path
-    sys.path.append(dirname(realpath(__file__)))
-setup_env()
 
-cfgdir = ".gitver/"
+# per-repo configuration
+cfgdirname = ".gitver"
+cfgdir = cfgdirname + "/"
 gitdir = ".git/"
 tpldir = os.path.join(cfgdir, 'templates')
 
-# file where to store NEXT user-defined version strings for the specified
-# TAG key
+
+# file where to store NEXT strings <=> TAG user-defined mappings
 next_store_file = os.path.join(cfgdir, ".next_store")
 
+
+# print os.listdir(os.path.expanduser('~'))
 next_suffix = "NEXT"
 next_custom_suffix = "SNAPSHOT"
-custom_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
+
+
+# defines the command decorator to require various actions
+class requires(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, f):
+        self.func()
+
+        def wrapped_f(*args):
+            f(*args)
+
+        return wrapped_f
 
 
 def check_gitdir():
     # check this is a git repo
     if not os.path.exists(gitdir):
-        print "Please run this tool from within the root directory of your " \
-              "project, where the .git directory resides."
+        print err("Please run this tool from within the root directory of your "
+                  "project, where the .git directory resides.")
         sys.exit(1)
 
 
-def check_cfgdir():
+def check_config():
     # check config directory exists
     if not os.path.exists(cfgdir):
-        print "Please run \"" + this_script + " --init\" first."
+        print "Please run " + bold(this_script + " init") + " first."
+        sys.exit(1)
+
+    # check .gitignore for .gitver inclusion
+    try:
+        if cfgdirname in open('.gitignore').read():
+            return
+
+        print warn("Warning: it's highly advised to EXCLUDE the gitver "
+                   "configuration from the repository!")
+        print "Please include the following line in your .gitignore file:"
+        print "    " + cfgdirname
+        sys.exit(1)
+    except IOError:
+        print err("Error reading your .gitignore file, please create one")
         sys.exit(1)
 
 
@@ -76,15 +114,16 @@ def parse_templates(templates, repo, next_custom):
                 lines = fp.readlines()
 
             if len(lines) < 2:
-                print "The specified template is not valid"
+                print err("The specified template " + bold(t) + " is not valid")
                 return
 
             output = str(lines[0]).strip(' #\n')
             if not os.path.exists(os.path.dirname(output)):
-                print "The specified template output \"" + output + "\"" +\
-                      "doesn't exists."
+                print err("The specified template output \"" + bold(output) +
+                          "\"" + "doesn't exists.")
 
-            print "Processing template \"" + t + "\" for " + output + "..."
+            print "Processing template \"" + bold(t) + "\" for " + output + \
+                  "..."
 
             lines = lines[1:]
 
@@ -105,12 +144,12 @@ def parse_templates(templates, repo, next_custom):
                 fp.write(res)
                 fp.close()
             except IOError:
-                print "Couldn't write file \"" + output + "\""
+                print err("Couldn't write file \"" + bold(output) + "\"")
 
             stat = os.stat(output)
-            print "Done, " + str(stat.st_size) + " bytes written"
+            print "Done, " + str(stat.st_size) + " bytes written."
         else:
-            print "Couldn't find the specified \"" + t + "\" template"
+            print err("Couldn't find the specified \"" + bold(t) + "\" template")
 
 
 def load_next_store(store_file):
@@ -135,11 +174,13 @@ def save_next_store(store_file, data):
         print "Couldn't update NEXT storage (" + store_file + ")"
 
 
+@requires(check_gitdir)
 def main():
-    check_gitdir()
+    # inject the default action "info" if none specified
     if len(sys.argv) < 2:
         sys.argv.insert(1, 'info')
     args = parse_args()
+
     return args.func(args)
 
 
@@ -147,6 +188,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     sp = parser.add_subparsers(title='Valid commands')
 
+    add_command(sp, 'version', "Show gitver version", cmd_version)
     add_command(sp, 'init', "Create gitver's configuration directory", cmd_init)
 
     add_command(sp, 'info', "Print version information for this repository",
@@ -192,6 +234,11 @@ def add_command(parent, name, desc, func):
     return p
 
 
+def cmd_version(args):
+    print "This is gitver " + bold(gitver_version)
+    print "Full build ID is " + bold(gitver_buildid)
+
+
 def cmd_init(args):
     if not os.path.exists(cfgdir):
         os.makedirs(cfgdir)
@@ -205,37 +252,41 @@ def cmd_init(args):
     print "Done."
 
 
-def cmd_list_templates(args):
-    check_cfgdir()
-
-    tpls = [f for f in os.listdir(tpldir) if os.path.isfile(template_path(f))]
-    if len(tpls) > 0:
-        print "Available templates:"
-        for t in tpls:
-            print "    " + t
-    else:
-        print "No templates available in " + tpldir
-
-
+@requires(check_config)
 def cmd_info(args):
-    check_cfgdir()
     next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
     has_next_custom = last_tag in next_store.keys()
     next_custom = next_store[last_tag] if has_next_custom else None
 
-    print "Current tag: " + last_tag
+    if not has_next_custom:
+        print warn("(no NEXT version string found, will use -" + next_suffix +
+                   " suffix)")
+
+    print "Current tag: " + color_tag(last_tag)
+
     if has_next_custom:
-        print "NEXT version string: v" + next_custom
-        print "Current version: v" + build_version_string(repo_info, next_custom)
+        print "NEXT version numbers: " + color_next(next_custom)
+        print "Current version: " + \
+              color_version("v" + build_version_string(repo_info, next_custom))
     else:
-        print "No NEXT version string found"
-        print "Current version: v" + build_version_string(repo_info)
+        print "Current version: " + \
+              color_version("v" + build_version_string(repo_info))
+
+@requires(check_config)
+def cmd_list_templates(args):
+    tpls = [f for f in os.listdir(tpldir) if os.path.isfile(template_path(f))]
+    if len(tpls) > 0:
+        print "Available templates:"
+        for t in tpls:
+            print "    " + bold(t) + " (" + template_path(t) + ")"
+    else:
+        print "No templates available in " + tpldir
 
 
+@requires(check_config)
 def cmd_build_template(args):
-    check_cfgdir()
     next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -245,8 +296,8 @@ def cmd_build_template(args):
     parse_templates(args.templates, repo_info, next_custom)
 
 
+@requires(check_config)
 def cmd_next(args):
-    check_cfgdir()
     next_store = load_next_store(next_store_file)
     repo_info = get_repo_info()
 
@@ -254,7 +305,7 @@ def cmd_next(args):
 
     vn = args.next_version_numbers
     try:
-        m = re.match(custom_version_matcher, vn).groups()
+        m = re.match(r"v{0,1}(\d+)\.(\d+)\.(\d+)$", vn).groups()
         if len(m) != 3:
             raise AttributeError
     except AttributeError:
@@ -268,8 +319,8 @@ def cmd_next(args):
     print "Set NEXT version string to " + custom
 
 
+@requires(check_config)
 def cmd_clean(args):
-    check_cfgdir()
     next_store = load_next_store(next_store_file)
     if len(args.tag) > 0:
         tag = args.tag
@@ -289,8 +340,8 @@ def cmd_clean(args):
         print "No custom string version found for tag \"" + tag + "\""
 
 
+@requires(check_config)
 def cmd_cleanall(args):
-    check_cfgdir()
     if os.path.exists(next_store_file):
         os.unlink(next_store_file)
         print "Custom strings removed."
@@ -298,8 +349,8 @@ def cmd_cleanall(args):
         print "No NEXT custom strings found."
 
 
+@requires(check_config)
 def cmd_list_next(args):
-    check_cfgdir()
     next_store = load_next_store(next_store_file)
     if len(next_store) > 0:
         print "Currently set NEXT custom strings:"
@@ -308,5 +359,6 @@ def cmd_list_next(args):
     else:
         print "No NEXT custom strings set."
 
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
