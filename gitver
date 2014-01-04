@@ -13,6 +13,7 @@ from string import Template
 from os.path import dirname, realpath, abspath, basename
 from git import get_repo_info
 from termcolors import *
+from storage import KVStore
 
 this_script = basename(__file__)
 
@@ -83,7 +84,7 @@ def check_config():
         sys.exit(1)
 
 
-def build_version_string(repo, next_custom=''):
+def build_version_string(repo, next_custom=None):
     in_next = repo['count'] > 0
     if in_next and not next_custom is None and len(next_custom) > 0:
         version = next_custom
@@ -150,28 +151,6 @@ def parse_templates(templates, repo, next_custom):
             print "Done, " + str(stat.st_size) + " bytes written."
         else:
             print err("Couldn't find the specified \"" + bold(t) + "\" template")
-
-
-def load_next_store(store_file):
-    data = dict()
-
-    try:
-        fp = open(store_file, 'r')
-        data = pickle.load(fp)
-        fp.close()
-    except IOError:
-        pass
-
-    return data
-
-
-def save_next_store(store_file, data):
-    try:
-        fp = open(store_file, 'w')
-        pickle.dump(data, fp)
-        fp.close()
-    except IOError:
-        print "Couldn't update NEXT storage (" + store_file + ")"
 
 
 @requires(check_gitdir)
@@ -254,25 +233,23 @@ def cmd_init(args):
 
 @requires(check_config)
 def cmd_info(args):
-    next_store = load_next_store(next_store_file)
+    next_store = KVStore(next_store_file)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
-    has_next_custom = last_tag in next_store.keys()
-    next_custom = next_store[last_tag] if has_next_custom else None
 
-    if not has_next_custom:
-        print warn("(no NEXT version string found, will use -" + next_suffix +
-                   " suffix)")
-
-    print "Current tag: " + color_tag(last_tag)
+    has_next_custom = next_store.has(last_tag)
+    next_custom = next_store.get(last_tag) if has_next_custom else None
 
     if has_next_custom:
-        print "NEXT version numbers: " + color_next(next_custom)
-        print "Current version: " + \
-              color_version("v" + build_version_string(repo_info, next_custom))
+        nvn = color_next(next_custom)
     else:
-        print "Current version: " + \
-              color_version("v" + build_version_string(repo_info))
+        nvn = "none defined, using " + color_next("-" + next_suffix) + " suffix"
+
+    print "Latest tag: " + color_tag(last_tag)
+    print "NEXT: " + nvn
+    print "Current version: " + \
+          color_version("v" + build_version_string(repo_info, next_custom))
+
 
 @requires(check_config)
 def cmd_list_templates(args):
@@ -287,18 +264,18 @@ def cmd_list_templates(args):
 
 @requires(check_config)
 def cmd_build_template(args):
-    next_store = load_next_store(next_store_file)
+    next_store = KVStore(next_store_file)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
-    has_next_custom = last_tag in next_store.keys()
-    next_custom = next_store[last_tag] if has_next_custom else None
+    has_next_custom = next_store.has(last_tag)
+    next_custom = next_store.get(last_tag) if has_next_custom else None
 
     parse_templates(args.templates, repo_info, next_custom)
 
 
 @requires(check_config)
 def cmd_next(args):
-    next_store = load_next_store(next_store_file)
+    next_store = KVStore(next_store_file)
     repo_info = get_repo_info()
 
     last_tag = repo_info['last-tag']
@@ -314,26 +291,24 @@ def cmd_next(args):
         sys.exit(1)
 
     custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
-    next_store[last_tag] = custom
-    save_next_store(next_store_file, next_store)
+    next_store.set(last_tag, custom).save()
     print "Set NEXT version string to " + custom
 
 
 @requires(check_config)
 def cmd_clean(args):
-    next_store = load_next_store(next_store_file)
+    next_store = KVStore(next_store_file)
     if len(args.tag) > 0:
         tag = args.tag
     else:
         repo_info = get_repo_info()
         tag = repo_info['last-tag']
 
-    has_custom = tag in next_store.keys()
-    next_custom = next_store[tag] if has_custom else None
+    has_custom = next_store.has(tag)
+    next_custom = next_store.get(tag) if has_custom else None
 
     if has_custom:
-        del next_store[tag]
-        save_next_store(next_store_file, next_store)
+        next_store.rm(tag).save()
         print "Cleaned up custom string version \"" + next_custom + \
               "\" for tag \"" + tag + "\""
     else:
@@ -351,8 +326,8 @@ def cmd_cleanall(args):
 
 @requires(check_config)
 def cmd_list_next(args):
-    next_store = load_next_store(next_store_file)
-    if len(next_store) > 0:
+    next_store = KVStore(next_store_file)
+    if not next_store.empty():
         print "Currently set NEXT custom strings:"
         for tag, vstring in next_store.items():
             print "    %s => %s" % (tag, vstring)
