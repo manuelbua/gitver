@@ -181,7 +181,8 @@ def cmd_next(args):
 
     custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
     next_store.set(last_tag, custom).save()
-    print "Set NEXT version string to " + color_next(custom)
+    print "Set NEXT version string to " + color_next(custom) + \
+          " for the current tag " + color_tag(last_tag)
 
 
 def cmd_clean(args):
