@@ -20,6 +20,7 @@ from config import cfg
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
 TPLDIR = os.path.join(CFGDIR, 'templates')
 
+user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 
 # try import version information
 try:
@@ -55,13 +56,23 @@ def parse_templates(templates, repo, next_custom):
             lines = lines[1:]
 
             xformed = Template("".join(lines))
+            vstring = build_version_string(repo, next_custom)
+
+            # this should NEVER fail
+            if not next_custom is None:
+                user = user_numbers_from_string(next_custom)
+                if not user:
+                    print err("Invalid custom NEXT version numbers detected, "
+                              "this should NEVER happen at this point!")
+                    sys.exit(1)
+
             keywords = {
-                'CURRENT_VERSION': build_version_string(repo, next_custom),
+                'CURRENT_VERSION': vstring,
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
-                'MAJOR': repo['maj'],
-                'MINOR': repo['min'],
-                'PATCH': repo['patch'],
+                'MAJOR': repo['maj'] if next_custom is None else int(user[0]),
+                'MINOR': repo['min'] if next_custom is None else int(user[1]),
+                'PATCH': repo['patch'] if next_custom is None else int(user[2]),
                 'COMMIT_COUNT': repo['count']
             }
 
@@ -77,6 +88,16 @@ def parse_templates(templates, repo, next_custom):
             print "Done, " + str(stat.st_size) + " bytes written."
         else:
             print err("Couldn't find the \"" + t + "\" template")
+
+
+def user_numbers_from_string(user):
+    try:
+        data = re.match(user_version_matcher, user).groups()
+        if len(data) != 3:
+            raise AttributeError
+    except AttributeError:
+        return False
+    return data
 
 
 def build_version_string(repo, next_custom=None):
@@ -170,16 +191,13 @@ def cmd_next(args):
     last_tag = repo_info['last-tag']
 
     vn = args.next_version_numbers
-    try:
-        m = re.match(r"v{0,1}(\d+)\.(\d+)\.(\d+)$", vn).groups()
-        if len(m) != 3:
-            raise AttributeError
-    except AttributeError:
+    user = user_numbers_from_string(vn)
+    if not user:
         print err("Please specify valid version numbers.\nThe expected "
                   "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1")
         sys.exit(1)
 
-    custom = "%d.%d.%d" % (int(m[0]), int(m[1]), int(m[2]))
+    custom = "%d.%d.%d" % (int(user[0]), int(user[1]), int(user[2]))
     next_store.set(last_tag, custom).save()
     print "Set NEXT version string to " + color_next(custom) + \
           " for the current tag " + color_tag(last_tag)
