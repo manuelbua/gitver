@@ -245,7 +245,7 @@ def cmd_list_next(args):
 
         print "Currently set NEXT custom strings (*=most recent " \
               "and reachable tag):"
-        for tag, vstring in next_store.items():
+        for tag, vstring in sorted(next_store.items()):
             print_item(tag, vstring)
 
         if not has_next_custom:
