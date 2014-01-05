@@ -33,7 +33,7 @@ def main():
 
     # inject the default action "info" if none specified
     if (len(sys.argv) < 2 or
-            sys.argv[1] == '--ignore-gitignore'):
+            len(sys.argv) == 2 and sys.argv[1] == '--ignore-gitignore'):
         sys.argv.append('info')
 
     args = parse_args()
