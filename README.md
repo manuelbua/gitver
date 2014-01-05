@@ -240,7 +240,7 @@ At this point, running *gitver* should generate the same `.gitignore` warning me
 
 Note that this will not prevent operations such as `gitver info` to continue, but acting on the *gitver* storage via `gitver next` will be disabled, until you take action to exclude its directory from the repository.
 
-Actually, you *can* force operations to continue (`--ignore-gitignore`), even if not recommended, but you must know what you are doing: *gitver* itself store your data in its .gitver directory and whenever a checkout is performed this data will change too, and that's not what you want.
+Actually, you *can* force operations to continue (`--ignore-gitignore`), even if not recommended, but you must know what you are doing: *gitver* itself store your preferences in its .gitver directory and, whenever a checkout is performed, this data would change too, and that's not what you want.
 
 
 ## Template-based version information blobs
