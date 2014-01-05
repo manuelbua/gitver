@@ -11,7 +11,7 @@ The `-NEXT` suffix is used when no NEXT version string numbers have been defined
 
 Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable.
 
-## Helps in version string management house-keeping
+## Helps in version string management
 
 Coupled with [git hooks](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), *gitver* version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
 
