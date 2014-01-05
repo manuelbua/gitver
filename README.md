@@ -5,9 +5,9 @@ It enhances `git describe` output and generates version strings in the format:
 
     v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<8-CHARS-HASH>
 
-The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of the *specified* version.
+The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of that future version.
 
-The `-NEXT` suffix, instead, is used when no NEXT version string numbers have been defined.
+The `-NEXT` suffix is used when no NEXT version string numbers have been defined and gitver needs to describe a future version.
 
 Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable.
 
@@ -84,6 +84,14 @@ The version string will now be:
 
     v1.0.0-SNAPSHOT-3/81dfbe12
 
+
+## Config file
+
+*gitver* uses a per-repository configuration file, in the format of a JSON document: currently there isn't much to fiddle with, future versions may see this expanded a bit.
+
+Currently, the default configuration file gets created automatically in `.gitver/config` and it contains the following, tweakable settings:
+
+    {"next_suffix": "NEXT", "next_custom_suffix": "SNAPSHOT"}
 
 
 ## Basic usage 
@@ -274,6 +282,7 @@ Here is the list of variables, with their values, available for templates:
 
 The list could later be expanded and improved, to cover much more information, such as date, time, let me know your suggestion!
 
+
 ## Compiling templates
 
 In order to build or compile a template, you have to invoke *gitver*'s `update` command, followed by the template name(s):
@@ -290,7 +299,6 @@ To list the available templates, use the `list-templates` command:
     $ gitver list-templates
     Available templates:
         version (.gitver/templates/version)
-
 
 
 ## Template example
