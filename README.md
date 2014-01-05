@@ -9,7 +9,7 @@ The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, t
 
 The `-NEXT` suffix, instead, is used when no NEXT version string numbers have been defined.
 
-###### Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable
+Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable.
 
 ## Helps in version string management house-keeping
 
@@ -122,8 +122,9 @@ The version string will now be:
         cleanall            Resets all the NEXT custom strings for thisrepository.
                             Usage of the "-NEXT" suffix is restored.
 
-The script expects the tags in your repository to be used to describe version information in the format ```vX.Y.Z```, so expect your repo tags to be used this way.
-Currently, if no tags in this format are found, an error message will ask you to create one.
+The tool expects the tags in your repository to get used to describe version information in the format `vX.Y.Z`, so you should take that into account and use them to properly mark a release version in your repository.
+
+If no tags in this format are found *gitver* will not run.
 
 So, let's create a brand new repository at `/tmp/test` to test this tool on: we are going to look at *gitver* features step-by-step.
 
