@@ -26,7 +26,7 @@ def check_config():
         sys.exit(1)
 
 
-def check_gitignore():
+def check_gitignore(exit_on_error=True):
     # check .gitignore for .gitver inclusion
     try:
         with open('.gitignore', 'r') as f:
@@ -39,4 +39,6 @@ def check_gitignore():
                "configuration from the repository!")
     print "Please include the following line in your .gitignore file:"
     print "    " + CFGDIRNAME
-    sys.exit(1)
+
+    if exit_on_error:
+        sys.exit(1)
