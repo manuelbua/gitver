@@ -3,7 +3,7 @@ A very simple, lightweight, tag-based version string manager for git, written in
 
 It enhances `git describe` output and generates version strings in the format:
 
-    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<8-CHARS-HASH>
+    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<HASH>
 
 The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of that future version.
 
@@ -344,7 +344,8 @@ There you have it!
 
 
 ## Bugs
+![bugs](http://media.giphy.com/media/10EdqIfzllpg6A/giphy.gif)
 
 NOPE!! MY CODE HAS NO BUGS!11
 
-But please report them [here](https://github.com/manuelbua/gitver/issues), thanks!
+Just joking, probably quite a few, please report them [here](https://github.com/manuelbua/gitver/issues), thanks!
