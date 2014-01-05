@@ -247,7 +247,7 @@ Actually, you *can* force operations to continue (`--ignore-gitignore`), even if
 
 One of the main reasons for this script to exists is to be able to also automatically update the project own's version information *blob* (e.g. `VersionInfo.java`, `version.py`, ...) or some other external file with the project's version information.
 
-I usually keep it *excluded* from the repository itself with a `.gitignore` directive, not only there would be no point in tracking it, but also it would be highly impractical, given that each time it updates the repository becomes **dirty** again.
+If you plan to compile template often very often, then you may want to exclude them from the repository, with a `.gitignore` directive.
 
 
 ## Template format
