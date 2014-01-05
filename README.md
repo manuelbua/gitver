@@ -1,131 +1,245 @@
 ## What is it?
-A very simple, lightweight, tag-based version string manager for git written in Bash.
+A very simple, lightweight, tag-based version string manager for git, written in Python.
 
-#### Generates new version numbers
-By *bumping* the version operands (*major*, *minor* and *patch*) described by a git tag, it will compute the next possible future version strings.
+It enhances `git describe` output and generates version strings in the format:
 
-#### Helps in version management house-keeping
+    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<HASH>
 
-Coupled with [*git hooks*](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), gitver version blob templates helps to keep your own project updated with its version information, performing simple keyword substitution automatically at *post-commit* time, for example.
+The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of the *specified* version.
+
+The `-NEXT` suffix, instead, is used when no NEXT version string numbers have been defined.
+
+###### Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable
+
+## Helps in version string management house-keeping
+
+Coupled with [*git hooks*](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), gitver version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
 
 ## Why?
-I'm working on a project that requires precise version string tracking and synchronization, so an automatic mechanism is needed.
 
-Furthermore, i want the version string and/or other useful information to be **embedded** in the application code automatically, also known as "compiled-in" so to speak, without me having to remember to do it manually each time.
+I'm working on a project that requires precise version string tracking and synchronization between a server and its different clients, so an automatic mechanism is needed.
+
+Furthermore, i want the version string and/or other useful information to be **embedded** in the application code automatically, "compiled-in" so to speak, without me having to remember to do it manually each time.
 
 ## Workflow
 
-- verify your repository's tags are **not** already being used for some other purpose
-- ```gitver init```, create first v0.0.1-SNAPSHOT version tag
-- work on your project
-- do a release, ```gitver finalize-bump```
-- ***optional*** ```gitver update-versioninfo <template_name>``` to update version information in your project tree, then rebuild the project to reflect version changes
+Your workflow shouldn't change much from what you are used to, but before using it, please ensure your repository's tags are **not** already being used for some other purpose, *gitver* expects them in the format ```vX.Y.Z```
+
+The following is a workflow exemplification of using *gitver* to manage version strings for your project, given it has already been setup:
+
+- you are working on your repository, now you are ready to promote the current version to the next release
+- create a release tag, ```git tag -a v0.0.2 -m 'Bump version'```
+- defines your NEXT version, the one you are going to work *towards* to by running ```gitver next 0.0.3``` 
+- run ```gitver info``` and check everything is fine
+- update project's version information by running ```gitver update version```, then rebuild the project to reflect version changes
 - any other manual house-keeping in-between releases can be performed now
-- finally, decide to bump for next release cycle, e.g. ```gitver bump-patch```
+- now you are working towards the NEXT release, repeat when release time has came again
+
+## How does it work?
+
+By reading your last reachable **annotated** tag, it will generate human-readable version strings, distinguishing automatically between *stable* and *development* builds, depending on the number of commits from that last tag (the *commit count*).
+
+As an example, let's assume the following history:
+
+    * 81dfbe1  (master) (Sun Jan 5 14:25:32 2014) some more
+    * 1200eec  (Sun Jan 5 14:24:59 2014) changed stuff
+    * 1d36d68  (Sun Jan 5 14:24:42 2014) another change
+    * e2c8ce2  (HEAD, tag: v0.0.0) (Sun Jan 5 14:02:36 2014) test
+
+In this case the commit count is `0` (HEAD is at `v0.0.0`), so a version string for a *stable* build will be generated:
+
+    v0.0.0/e2c8ce21
+
+Note how stable builds do not have any suffix and the commit count of `0` is just discarded.
+By moving HEAD to `master`, instead, will produce a slightly different version string, let's see that:
+
+    * 81dfbe1  (HEAD, master) (Sun Jan 5 14:25:32 2014) some more
+    * 1200eec  (Sun Jan 5 14:24:59 2014) changed stuff
+    * 1d36d68  (Sun Jan 5 14:24:42 2014) another change
+    * e2c8ce2  (tag: v0.0.0) (Sun Jan 5 14:02:36 2014) test
+
+Now the commit count is `3`, this indicates that you are working toward the NEXT release, the NEXT version numbers haven't been defined yet, so the newly generated version string will now be:
+
+    v0.0.0-NEXT-3/81dfbe12
+
+This is the default form of describing a NEXT release, that is, when a NEXT version has not yet been defined but some work has been done **past** the last tagged release: it's quite similar to the one produced by `git describe`, in fact the information are the very same, only the -NEXT suffix has been added in-between.
+
+But we can do more than this: *gitver* gives the option to define the NEXT version numbers for the latest tag, so let's define it to be `0.0.1`:
+
+    gitver next 0.0.1
+    Set NEXT version string to 0.0.1 for the current tag v0.0.0
+
+Now that it has been set, the very same point in development can then be described more intelligently:
+
+    v0.0.1-SNAPSHOT-3/81dfbe12
+
+Got it? You basically defined what the next tag name *will* be, and the correct version string is generated for you.
+
+Unhappy of what you have choosen for the next version numbers? Want to bump a bit more? Then just set the NEXT version numbers to something else:
+
+    gitver next 1.0.0
+    Set NEXT version string to 1.0.0 for the current tag v0.0.0
+
+The version string will now be:
+
+    v1.0.0-SNAPSHOT-3/81dfbe12
+
+
 
 ## Basic usage 
-**Note this is a preliminary version and both the configuration and the behavior are subject to change.**
 
-    $ gitver
-    Please run "gitver init" first.
-    usage: gitver <init|info|bump-major|bump-minor|bump-patch|finalize-bump|update-versioninfo <template|template1 template2 templateN>>
+    $ gitver --help
+    usage: gitver [-h] [--ignore-gitignore]
+                  
+                  {version,init,info,list-templates,list-next,update,next,clean,cleanall}
+                  ...
 
-The script expects the tags in your repository to be used to describe version information in the format ```vX.Y.Z``` or ```vX.Y.Z-SNAPSHOT```, so expect your repo tags to be used this way.
-CUrrently, if no tags in this format are found, an error message will ask you to create one.
+    optional arguments:
+      -h, --help            show this help message and exit
+      --ignore-gitignore    Ignore the .gitignore warning and continue running as
+                            normal (specify this flag before any other command, at
+                            YOUR own risk)
 
-So, pick any repository you want to test this tool on and run ```gitver``` from the project root, if your repository doesn't have any tag yet you'll be asked to create one at HEAD:
+    Valid commands:
+      {version,init,info,list-templates,list-next,update,next,clean,cleanall}
+        version             Show gitver version
+        init                Create gitver's configuration directory
+        info                Print version information for this repository
+                            [default]
+        list-templates      Enumerates available templates
+        list-next           Enumerates NEXT custom strings
+        update              Perform simple keyword substitution on the specified
+                            template file(s) and place it to the path described by
+                            the first line in the template.
+        next                Sets the NEXT version numbers for the currently
+                            reachable last tag. This will suppress the usage of
+                            the "-NEXT" suffix, enable use of the custom
+                            "-SNAPSHOT" suffix and will use the supplied version
+                            numbers instead.
+        clean               Resets the NEXT custom string for the currently active
+                            tag, or the specified tag, to a clean state. Usage of
+                            the "-NEXT" suffix is restored.
+        cleanall            Resets all the NEXT custom strings for thisrepository.
+                            Usage of the "-NEXT" suffix is restored.
+
+The script expects the tags in your repository to be used to describe version information in the format ```vX.Y.Z```, so expect your repo tags to be used this way.
+Currently, if no tags in this format are found, an error message will ask you to create one.
+
+So, let's create a brand new repository at `/tmp/test` to test this tool on: we are going to look at *gitver* features step-by-step.
+
+    cd /tmp && mkdir test && cd test && git init
+
+Now populate it with some activity:
+
+    echo "some data" > some && git add some && git commit -m 'initial commit' && echo "more data" > more && echo "another one" > another && git add more && git commit -m 'one more' && git add another && git commit -m 'even more'
+
+Your repository should now look like this:
+
+    * 9a06012  (HEAD, master) (Sun Jan 5 15:47:07 2014) even more (Manuel Bua)
+    * 594b422  (Sun Jan 5 15:47:07 2014) one more (Manuel Bua)
+    * 23fdbb5  (Sun Jan 5 15:47:07 2014) initial commit (Manuel Bua)
+
+Let's initialize *gitver* at this point:
 
     $ gitver init
-    Created configuration directory "./.gitver"
-    Created template directory "./.gitver/templates"
-    This repository requires ANY tag to be in the format vX.Y.Z or vX.Y.Z-SNAPSHOT
-    (TODO custom suffix in config)
-    
-    An initial first tag is needed, you can create such first tag with the following command:
-        git tag -a v0.0.1-SNAPSHOT -m 'Initial version'
-    
-    Would you like to do it now at HEAD (y/n)? y
-    Done.
+    Created .gitver/
+    Created .gitver/templates
+    Warning: it's highly recommended to EXCLUDE the gitver configuration from the repository!
+    Please include the following line in your .gitignore file:
+        .gitver
 
-At this point, *gitver* should be able to find it and produce some useful output:
+It's recommended to **exclude** gitver's configuration directory from the repository, in fact gitver will not run until the `.gitignore` file includes the `.gitver` directory (you can specify the `--ignore-gitignore` flag if you really want to): this is to prevent your own per-tag configuration to get lost whenever you checkout old revisions and you don't want that to happen, so let's exclude it:
 
-    $ gitver info
-    Current tag: v0.0.1-SNAPSHOT
-    Current build ID: 9c5f36f9f0c940ba784134b5f5ba8bdf80d23947
-    Current version: v0.0.1-SNAPSHOT/9c5f36f9
-    Possible next versions to bump to:
-      bump-major => v1.0.0-SNAPSHOT
-      bump-minor => v0.1.0-SNAPSHOT
-      bump-patch => v0.0.2-SNAPSHOT
-    State: pending finalize, v0.0.1-SNAPSHOT => v0.0.1
+    echo ".gitver" >> .gitignore
 
-As you can see, *gitver* found the tag and performed some work already: the current tag is shown and, transforming that in the format ```v<MAJ>.<MIN>.<PATCH>-<NOTES>/<HASH>```, it produced the current version string:
+Now that this has been done, run *gitver*:
 
-    Current version: v0.0.1-SNAPSHOT/9c5f36f9
+    $ gitver
+    Error, this repository is required to define tags in the format vX.Y.Z
 
-Followed by computing the next possible version iteration strings:
+Right, we have no tags at this point, so let's create `v0.0.0` at the first commit with this command (replace the commit hash with your own where needed):
 
-    Possible next versions to bump to:
-      bump-major => v1.0.0-SNAPSHOT
-      bump-minor => v0.1.0-SNAPSHOT
-      bump-patch => v0.0.2-SNAPSHOT
+    git tag -a v0.0.0 -m 'Initial version' 23fdbb5
 
-This means *gitver* can automatically bump maj/min/patch versions via the command line switches, whenever the time for release has came and a new iteration will (hopefully!) begin.
+This is how your repository should look like:
 
-So let's suppose you now want to release the stable version, you'll remember how smart *gitver* is :) and recall that ```gitver info``` also described that:
+    * 9a06012  (HEAD, master) (Sun Jan 5 15:47:07 2014) even more (Manuel Bua)
+    * 594b422  (Sun Jan 5 15:47:07 2014) one more (Manuel Bua)
+    * 23fdbb5  (tag: v0.0.0) (Sun Jan 5 15:47:07 2014) initial commit (Manuel Bua)
 
-    State: pending finalize, v0.0.1-SNAPSHOT => v0.0.1
+Now *gitver* output should be somewhat more informative:
 
-That is, *gitver* will costantly remember you which version you are working on and what version you are going to finalize things to, so just do it:
+    $ gitver
+    Latest tag: v0.0.0
+    NEXT: none defined, using -NEXT suffix
+    Current build ID: 9a06012b7a6981e1cf9aaea4d393d2567a3ddfb9
+    Current version: v0.0.0-NEXT-2/9a06012b
 
-    $ gitver finalize-bump
-    Done, v0.0.1-0-g9c5f36f
+Time to decide what the NEXT version numbers will be, so let's set this and run *gitver* again:
 
-Now *gitver* should have created another tag all by itself, v0.0.1:
+    $ gitver next 0.0.1
+    Set NEXT version string to 0.0.1 for the current tag v0.0.0
 
-    $ git tag
-    v0.0.1
-    v0.0.1-SNAPSHOT
+    $ gitver
+    Latest tag: v0.0.0
+    NEXT: 0.0.1
+    Current build ID: 9a06012b7a6981e1cf9aaea4d393d2567a3ddfb9
+    Current version: v0.0.1-SNAPSHOT-2/9a06012b
 
-    $ gitver info
-    Current tag: v0.0.1
-    Current build ID: 9c5f36f9f0c940ba784134b5f5ba8bdf80d23947
-    Current version: v0.0.1/9c5f36f9
-    Possible next versions to bump to:
-      bump-major => v1.0.0-SNAPSHOT
-      bump-minor => v0.1.0-SNAPSHOT
-      bump-patch => v0.0.2-SNAPSHOT
-    State: version idleing (v0.0.1)
+Notice how the build id stays the same but the version string changed: in fact both strings are describing the same thing, they are equivalent, but given the same intentions, i find the latter to be much more clear.
 
-*gitver* noticed there are no SPANSHOT-suffixed tags, thus versioning is happily idleing: as soon as you bump for the next release cycle, versioning is resumed:
+Let's add that `.gitignore` file we didn't add before and declare the version stable, all we have to do is to add a tag when ready:
 
-    $ gitver bump-patch
-    Bumping from v0.0.1 to 0.0.2-SNAPSHOT
-    Done, v0.0.2-SNAPSHOT-0-g9c5f36f
+    $ git add .gitignore && git commit -m 'Add .gitignore file'
+    $ git tag -a 'v0.0.1' -m 'Bump version'
+    $ gitver
+    Latest tag: v0.0.1
+    NEXT: none defined, using -NEXT suffix
+    Current build ID: 7837a7cb69fb43f7acc54bb795b925538ee6cf5e
+    Current version: v0.0.1/7837a7cb
 
-    $ gitver info
-    Current tag: v0.0.2-SNAPSHOT
-    Current build ID: 9c5f36f9f0c940ba784134b5f5ba8bdf80d23947
-    Current version: v0.0.2-SNAPSHOT/9c5f36f9
-    Possible next versions to bump to:
-      bump-major => v1.0.0-SNAPSHOT
-      bump-minor => v0.1.0-SNAPSHOT
-      bump-patch => v0.0.3-SNAPSHOT
-    State: pending finalize, v0.0.2-SNAPSHOT => v0.0.2
+For completeness, here is the final repository:
 
-    $ git tag
-    v0.0.1
-    v0.0.1-SNAPSHOT
-    v0.0.2-SNAPSHOT
+    * 7837a7c  (HEAD, tag: v0.0.1, master) (Sun Jan 5 16:07:36 2014) Add .gitignore file (Manuel Bua)
+    * 9a06012  (Sun Jan 5 15:47:07 2014) even more (Manuel Bua)
+    * 594b422  (Sun Jan 5 15:47:07 2014) one more (Manuel Bua)
+    * 23fdbb5  (tag: v0.0.0) (Sun Jan 5 15:47:07 2014) initial commit (Manuel Bua)
 
-The way it works could put some people off i think, i suspect not everyone is ok with tag proliferation, and thus real commit objects, but in my opinion this is something i'm willing to pay for, if this mechanism can pushed even further, and sure it can be.
+
+Say now you need to perform a rebuild of an old revision for whatever reason, let's get back to an old state before `v0.0.1` release:
+
+    $ git checkout v0.0.1~2
+
+This is the repository now:
+
+    * 7a8d491  (tag: v0.0.1, master) (Sun Jan 5 16:42:17 2014) Add .gitignore file (Manuel Bua)
+    * d2009eb  (Sun Jan 5 16:39:59 2014) even more (Manuel Bua)
+    * 8a19d37  (HEAD) (Sun Jan 5 16:39:59 2014) one more (Manuel Bua)
+    * 9408667  (tag: v0.0.0) (Sun Jan 5 16:39:59 2014) initial commit (Manuel Bua)
+
+At this point, running *gitver* should produce a warning message, that is, we didn't include `.gitver` configuration directory in the `.gitignore` file from the start, we did that only at a later time, so let's ignore the warning:
+
+    $ gitver --ignore-gitignore
+    (ignoring .gitignore warning)
+    Latest tag: v0.0.0
+    NEXT: 0.0.1
+    Current build ID: 8a19d37bc1521aa1e242b63db672f3699ba70fe7
+    Current version: v0.0.1-SNAPSHOT-1/8a19d37b
+
+Now, back to master in preparation for the next section:
+
+    $ git checkout master
+
 
 ## Template-based version information blobs
-One of the main reasons for this script to exists is to be able to also automatically update the project own's version information blob (e.g. ```VersionInfo.java```).
 
-I usually keep it *excluded* from the repository itself with a ```.gitignore``` directive since there would be no point in tracking it but also it would be impossible to know the hash in advance for the next build since that isn't a predictable incremental number.
+One of the main reasons for this script to exists is to be able to also automatically update the project own's version information blob (e.g. `VersionInfo.java`, `version.py`, ...).
+
+I usually keep it *excluded* from the repository itself with a `.gitignore` directive since not only there would be no point in tracking it, but also it would be hihgly impractical given that each time it updates the repository would become **dirty** again.
+
 
 ## Template format
+
 The only **required** bit of information *gitver* needs is where the output of this template should be placed, so the first line shall only contain the path to the output file in a Bash-style comment (spaces are trimmed):
 
     # /path/to/project/file.extension
@@ -133,32 +247,47 @@ The only **required** bit of information *gitver* needs is where the output of t
 The rest of the file is obviously up to you, an example is available at the "Template example" section.
 
 ## Template variables
-Currently, the following variables are available to the template, depicted here are their names and values given an imaginary tag, such as "v0.4.10-SNAPSHOT":
 
-    - ${CURRENT_VERSION} = 0.4.10-SNAPSHOT-1/bb29217d
-    - ${BUILD_ID}        = bb29217d
-    - ${FULL_BUILD_ID}   = bb29217d46325ba4f7b8177c9cc1cddd82246f32
-    - ${MAJOR}           = 0
-    - ${MINOR}           = 4
-    - ${PATCH}           = 10
-    - ${NOTE}            = SNAPSHOT
-    - ${NEXT_MAJOR}      = 1.0.0-SNAPSHOT
-    - ${NEXT_MINOR}      = 0.5.0-SNAPSHOT
-    - ${NEXT_PATCH}      = 0.4.11-SNAPSHOT
-    - ${COMMIT_COUNT}    = 1
+Given these basic assumptions:
 
-Technically, more information shall be available due to the nature of this very basic templating system, but those are the most useful, lookup the source for others.
+- the latest tag is `v0.4.9`
+- the NEXT version numbers have been defined to be `0.4.10`
+- the actual commit count is `2`
 
-## Template invokation
-In order to perform keyword substitution, you have to invoke *gitver* with the ```update-versioninfo``` switch, followed by the template name(s):
+Here is the list of variables, with their values, available for templates:
 
-    $ gitver update-versioninfo my_template
+    ${CURRENT_VERSION} = 0.4.10-SNAPSHOT-2/a3a73a58
+    ${BUILD_ID}        = a3a73a58
+    ${FULL_BUILD_ID}   = a3a73a5861e5721055f3a12545201e265ba0c097
+    ${MAJOR}           = 0
+    ${MINOR}           = 4
+    ${PATCH}           = 10
+    ${COMMIT_COUNT}    = 2
 
-You can define any number of templates for the repository, just put them in the ```.gitver/templates``` directory: then you can specify multiple templates at once by enclosing the list in quotes (e.g. ```"this another_one the_third"```).
+The list could later be expanded and improved, to cover much more information, such as date, time, let me know your suggestion!
+
+## Compiling templates
+
+In order to build or compile a template, you have to invoke *gitver*'s `update` command, followed by the template name(s):
+
+    $ gitver update my_template
+
+
+You can define any number of templates for the repository, just put them in the ```.gitver/templates``` directory: you can also tell *gitver* to build multiple templates at once by enclosing the list in quotes:
+
+    $ gitver update "template1 template2 templateN"
+
+To list the available templates, use the `list-templates` command:
+
+    $ gitver list-templates
+    Available templates:
+        version (.gitver/templates/version)
+
 
 
 ## Template example
-In a Python project of mine, this is the template "test" i put in its ```.gitver/templates``` directory:
+
+In a Python project of mine, this is the template "version" i've put in the `.gitver/templates` directory:
 
     # /home/manuel/dev/python/project/version.py
     #!/usr/bin/env python2
@@ -168,10 +297,12 @@ In a Python project of mine, this is the template "test" i put in its ```.gitver
     project_version = "v${CURRENT_VERSION}"
     project_build_id = "${FULL_BUILD_ID}"
 
-Now let's invoke *gitver* to perform keyword substitution on that template:
+Now let's compile it:
 
-    $ gitver update-versioninfo test
-    Processing "./.gitver/templates/test", wrote file file:///home/manuel/dev/python/project/version.py (4.0K)
+    $ gitver update version
+    Processing template "version" for /home/manuel/dev/python/project/version.py...
+    Done, 188 bytes written.
+
 
 This will produce the following file at ```/home/manuel/dev/python/project/version.py```, **overwriting** the previous file, if any:
 
@@ -179,28 +310,25 @@ This will produce the following file at ```/home/manuel/dev/python/project/versi
     # coding=utf-8
     
     # MACHINE-GENERATED CODE, DO NOT TOUCH!
-    project_version = "v0.4.10-SNAPSHOT-1/bb29217d"
-    project_build_id = "bb29217d46325ba4f7b8177c9cc1cddd82246f32"
+    userve_version = "v0.4.10-SNAPSHOT-2/a3a73a58"
+    userve_build_id = "a3a73a5861e5721055f3a12545201e265ba0c097"
+   
 
-Searching for another example? Look at this project on [github](https://github.com/manuelbua/gitver), the VERSION file is generated this way.
 
 ## Templates + git hooks
-At this point is very simple to automatize even more, instead of manually updating version information after each commit let's create a git hook to take care of it:
+
+At this point is very simple to automatize even more, instead of manually updating version information after each commit, let's create a git hook to take care of this:
 
     $ cat .git/hooks/post-commit 
     #!/bin/bash
     # gitver should be in your path to work!
-    gitver update-versioninfo test
+    gitver update version
 
 There you have it!
 
-## Thanks
-*gitver* has been inspired by [this Falkor's Makefile](https://github.com/Falkor/Makefiles/blob/devel/latex/Makefile), thanks!
 
 ## Bugs
+
 NOPE!! MY CODE HAS NO BUGS!11
 
 But please report them [here](https://github.com/manuelbua/gitver/issues), thanks!
-
-# Future plans
-I'm probably going to rewrite this in Python with the awesome [sh](https://github.com/amoffat/sh) library, but for now it does the job nicely.
