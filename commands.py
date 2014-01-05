@@ -232,9 +232,24 @@ def cmd_cleanall(args):
 
 def cmd_list_next(args):
     next_store = KVStore(NEXT_STORE_FILE)
+    repo_info = get_repo_info()
+    last_tag = repo_info['last-tag']
+
+    has_next_custom = next_store.has(last_tag)
+    next_custom = next_store.get(last_tag) if has_next_custom else None
+
     if not next_store.empty():
-        print "Currently set NEXT custom strings:"
+        def print_item(k, v):
+            print "    %s => %s" % (color_tag(k), color_next(v)) +\
+                  (' (*)' if tag == last_tag else '')
+
+        print "Currently set NEXT custom strings (*=most recent " \
+              "and reachable tag):"
         for tag, vstring in next_store.items():
-            print "    %s => %s" % (color_tag(tag), color_next(vstring))
+            print_item(tag, vstring)
+
+        if not has_next_custom:
+            print_item(last_tag, '<undefined>')
+
     else:
         print "No NEXT custom strings set."
