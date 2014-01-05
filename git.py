@@ -58,9 +58,9 @@ def get_repo_info():
     vpatch = int(desc[2])
     vcount = int(desc[3])
     vhash = desc[4]
-
+    hashlen = len(vhash)
     full_build_id = get_build_id()
-    if not full_build_id:
+    if not full_build_id or hashlen == 0:
         print err("Couldn't retrieve build id information")
         sys.exit(1)
 
@@ -75,5 +75,5 @@ def get_repo_info():
         sys.exit(1)
 
     return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
-            'build-id': full_build_id[:8], 'full-build-id': full_build_id,
+            'build-id': full_build_id[:hashlen], 'full-build-id': full_build_id,
             'last-tag': tag}

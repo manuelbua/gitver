@@ -334,11 +334,6 @@ At this point is very simple to automatize even more, instead of manually updati
 There you have it!
 
 
-
-## TODO
-
-- the number of characters that compose the hash is currently hard-coded to **8**: this will change soon and the same number of characters that `git describe` outputs will be used instead.
-
 ## Bugs
 
 NOPE!! MY CODE HAS NO BUGS!11
