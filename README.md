@@ -3,7 +3,7 @@ A very simple, lightweight, tag-based version string manager for git, written in
 
 It enhances `git describe` output and generates version strings in the format:
 
-    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<HASH>
+    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<8-CHARS-HASH>
 
 The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of the *specified* version.
 
@@ -13,7 +13,7 @@ The `-NEXT` suffix, instead, is used when no NEXT version string numbers have be
 
 ## Helps in version string management house-keeping
 
-Coupled with [*git hooks*](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), gitver version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
+Coupled with [git hooks](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), *gitver* version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
 
 ## Why?
 
@@ -28,10 +28,10 @@ Your workflow shouldn't change much from what you are used to, but before using 
 The following is a workflow exemplification of using *gitver* to manage version strings for your project, given it has already been setup:
 
 - you are working on your repository, now you are ready to promote the current version to the next release
-- create a release tag, ```git tag -a v0.0.2 -m 'Bump version'```
-- defines your NEXT version, the one you are going to work *towards* to by running ```gitver next 0.0.3``` 
-- run ```gitver info``` and check everything is fine
-- update project's version information by running ```gitver update version```, then rebuild the project to reflect version changes
+- create a release tag, `git tag -a v0.0.2 -m 'Bump version'`
+- defines your NEXT version, the one you are going to work *towards* to by running `gitver next 0.0.3`
+- run `gitver info` and check everything is fine
+- **OPTIONAL** update your project's version information by running `gitver update <template name>`, then rebuild the project to reflect version changes
 - any other manual house-keeping in-between releases can be performed now
 - now you are working towards the NEXT release, repeat when release time has came again
 
@@ -198,7 +198,7 @@ Let's add that `.gitignore` file we didn't add before and declare the version st
     Current build ID: 7837a7cb69fb43f7acc54bb795b925538ee6cf5e
     Current version: v0.0.1/7837a7cb
 
-For completeness, here is the final repository:
+The repository should now look like the following:
 
     * 7837a7c  (HEAD, tag: v0.0.1, master) (Sun Jan 5 16:07:36 2014) Add .gitignore file (Manuel Bua)
     * 9a06012  (Sun Jan 5 15:47:07 2014) even more (Manuel Bua)
@@ -212,39 +212,46 @@ Say now you need to perform a rebuild of an old revision for whatever reason, le
 
 This is the repository now:
 
-    * 7a8d491  (tag: v0.0.1, master) (Sun Jan 5 16:42:17 2014) Add .gitignore file (Manuel Bua)
-    * d2009eb  (Sun Jan 5 16:39:59 2014) even more (Manuel Bua)
-    * 8a19d37  (HEAD) (Sun Jan 5 16:39:59 2014) one more (Manuel Bua)
-    * 9408667  (tag: v0.0.0) (Sun Jan 5 16:39:59 2014) initial commit (Manuel Bua)
+    * 7837a7c  (tag: v0.0.1, master) (Sun Jan 5 16:42:17 2014) Add .gitignore file (Manuel Bua)
+    * 9a06012  (Sun Jan 5 16:39:59 2014) even more (Manuel Bua)
+    * 594b422  (HEAD) (Sun Jan 5 16:39:59 2014) one more (Manuel Bua)
+    * 23fdbb5  (tag: v0.0.0) (Sun Jan 5 16:39:59 2014) initial commit (Manuel Bua)
 
-At this point, running *gitver* should produce a warning message, that is, we didn't include `.gitver` configuration directory in the `.gitignore` file from the start, we did that only at a later time, so let's ignore the warning:
+At this point, running *gitver* should generate the same `.gitignore` warning message as before: that is, recall that we didn't include `.gitver` configuration directory in the `.gitignore` file from the start, we did it only at a later time:
 
-    $ gitver --ignore-gitignore
-    (ignoring .gitignore warning)
+    $ gitver
+    Warning: it's highly recommended to EXCLUDE the gitver configuration from the repository!
+    Please include the following line in your .gitignore file:
+        .gitver
+
     Latest tag: v0.0.0
     NEXT: 0.0.1
-    Current build ID: 8a19d37bc1521aa1e242b63db672f3699ba70fe7
-    Current version: v0.0.1-SNAPSHOT-1/8a19d37b
+    Current build ID: 594b422bc1521aa1e242b63db672f3699ba70fe7
+    Current version: v0.0.1-SNAPSHOT-1/594b422b
 
-Now, back to master in preparation for the next section:
+Note that this will not prevent operations such as `gitver info` to continue, but acting on the *gitver* storage via `gitver next` will be disabled, until you take action to exclude its directory from the repository.
 
-    $ git checkout master
+Actually, you *can* force operations to continue (`--ignore-gitignore`), even if not recommended, but you must know what you are doing: *gitver* itself store your data in its .gitver directory and whenever a checkout is performed this data will change too, and that's not what you want.
 
 
 ## Template-based version information blobs
 
-One of the main reasons for this script to exists is to be able to also automatically update the project own's version information blob (e.g. `VersionInfo.java`, `version.py`, ...).
+One of the main reasons for this script to exists is to be able to also automatically update the project own's version information *blob* (e.g. `VersionInfo.java`, `version.py`, ...) or some other external file with the project's version information.
 
-I usually keep it *excluded* from the repository itself with a `.gitignore` directive since not only there would be no point in tracking it, but also it would be hihgly impractical given that each time it updates the repository would become **dirty** again.
+I usually keep it *excluded* from the repository itself with a `.gitignore` directive, not only there would be no point in tracking it, but also it would be highly impractical, given that each time it updates the repository becomes **dirty** again.
 
 
 ## Template format
 
-The only **required** bit of information *gitver* needs is where the output of this template should be placed, so the first line shall only contain the path to the output file in a Bash-style comment (spaces are trimmed):
+The only **required** bit of information *gitver* needs is where the output of the template should be placed, so the first line shall only contain the path to the output file in a Bash-style comment (spaces are trimmed):
 
     # /path/to/project/file.extension
 
 The rest of the file is obviously up to you, an example is available at the "Template example" section.
+
+
+*Why is the format starting with a Bash-style comment, you say?* The initial version of *gitver* was a Bash script, so it was a natural choice to adopt that: i then realized i didn't like how things were and rewrote all it in Python, but the template format stayed the same because it was *simple*.
+
 
 ## Template variables
 
@@ -326,6 +333,11 @@ At this point is very simple to automatize even more, instead of manually updati
 
 There you have it!
 
+
+
+## TODO
+
+- the number of characters that compose the hash is currently hard-coded to **8**: this will change soon and the same number of characters that `git describe` outputs will be used instead.
 
 ## Bugs
 
