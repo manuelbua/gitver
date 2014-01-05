@@ -54,7 +54,7 @@ def parse_args():
     parser.add_argument('--ignore-gitignore',
                         help='Ignore the .gitignore warning and continue '
                              'running as normal (specify this flag before '
-                             'any other command)',
+                             'any other command, at YOUR own risk)',
                         dest='ignore_gitignore',
                         default=False,
                         action='store_true')
