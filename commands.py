@@ -159,7 +159,7 @@ def cmd_info(args):
               " suffix"
 
     print "Latest tag: " + color_tag(last_tag)
-    print "NEXT: " + nvn
+    print "NEXT defined as: " + nvn
     print "Current build ID: " + color_tag(repo_info['full-build-id'])
     print "Current version: " + \
           color_version("v" + build_version_string(repo_info, next_custom))
