@@ -32,20 +32,33 @@ def main():
     check_gitdir()
 
     # inject the default action "info" if none specified
-    if len(sys.argv) < 2:
-        sys.argv.insert(1, 'info')
+    if (len(sys.argv) < 2 or
+            sys.argv[1] == '--ignore-gitignore'):
+        sys.argv.append('info')
+
     args = parse_args()
 
     # avoid check if 'init' command
     if not 'init' in sys.argv:
         check_config()
-        check_gitignore()
+        if not args.ignore_gitignore:
+            check_gitignore()
+        else:
+            print "(ignoring .gitignore warning)"
 
     return args.func(args)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--ignore-gitignore',
+                        help='Ignore the .gitignore warning and continue '
+                             'running as normal (specify this flag before '
+                             'any other command)',
+                        dest='ignore_gitignore',
+                        default=False,
+                        action='store_true')
+
     sp = parser.add_subparsers(title='Valid commands')
 
     add_command(sp, 'version', "Show gitver version", cmd_version)
