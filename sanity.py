@@ -42,3 +42,5 @@ def check_gitignore(exit_on_error=True):
 
     if exit_on_error:
         sys.exit(1)
+    else:
+        print ""
