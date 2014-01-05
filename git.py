@@ -52,7 +52,7 @@ def get_repo_info():
                   "format vX.Y.Z")
         sys.exit(1)
 
-    # extract version string
+    # extract version string, assumes HEAD to be at that commit
     vmaj = int(desc[0])
     vmin = int(desc[1])
     vpatch = int(desc[2])
@@ -66,8 +66,9 @@ def get_repo_info():
 
     # sanity check
     if not full_build_id.startswith(vhash):
-        print err("Hash problem detected: git describe reports " + vhash +
-                  ", but full id is " + full_build_id)
+        print err("Hash problem detected: git-describe reports " + vhash +
+                  ", but HEAD id is " + full_build_id)
+        sys.exit(1)
 
     tag = last_tag()
     if not tag:
