@@ -5,3 +5,4 @@ bin/gitver update dev
 
 echo "Installing development version..."
 sudo python2 setup.py develop
+sudo rm -rf build dist &> /dev/null

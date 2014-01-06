@@ -1,0 +1,8 @@
+#!/bin/bash
+sudo rm -rf build dist &> /dev/null
+rm gitver/_version.py gitver/_version.pyc gitver/version.py gitver/version.pyc &> /dev/null
+bin/gitver update release
+
+echo "Building release version..."
+sudo python2 setup.py sdist
+echo -e "\nPush it to PyPI when ready with \"python2 setup.py upload\""
