@@ -13,7 +13,7 @@ from git import get_repo_info
 from storage import KVStore
 from sanity import check_gitignore
 from string import Template
-from defines import CFGDIR
+from defines import CFGDIR, PRJ_ROOT
 from config import cfg
 
 # file where to store NEXT strings <=> TAG user-defined mappings
@@ -47,7 +47,7 @@ def parse_templates(templates, repo, next_custom):
 
             output = str(lines[0]).strip(' #\n')
             if not os.path.exists(os.path.dirname(output)):
-                print err("The template output \"" + bold(output) +
+                print err("The template output directory \"" + bold(output) +
                           "\"" + "doesn't exists.")
 
             print "Processing template \"" + bold(t) + "\" for " + output + \
@@ -77,6 +77,11 @@ def parse_templates(templates, repo, next_custom):
             }
 
             res = xformed.substitute(keywords)
+
+            # resolve relative paths to the project's root
+            if not os.path.isabs(output):
+                output = os.path.join(PRJ_ROOT, output)
+
             try:
                 fp = open(output, 'w')
                 fp.write(res)
