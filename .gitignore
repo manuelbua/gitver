@@ -6,9 +6,6 @@ VERSION
 # dev
 _version.py
 
-# release
-version.py
-
 # setuptools
 dist/
 build/
