@@ -53,7 +53,13 @@ def main():
         url='https://github.com/manuelbua/gitver',
         scripts=scripts,
         packages=['gitver'],
-        install_requires=requirements()
+        install_requires=requirements(),
+        classifiers=[
+            'Development Status :: 4 - Beta',
+            'License :: OSI Approved :: Apache Software License',
+            'Programming Language :: Python :: 2.7',
+            'Topic :: Software Development :: Version Control',
+        ]
     )
 
 
