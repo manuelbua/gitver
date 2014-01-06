@@ -10,6 +10,7 @@ _version.py
 version.py
 
 # setuptools
-/dist/
+dist/
+build/
 /*.egg-info
 /*.egg
