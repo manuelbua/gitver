@@ -140,9 +140,9 @@ def build_version_string(repo, next_custom=None):
 
 
 def cmd_version(args):
-    v = gitver_version if gitver_version is not None else 'n/a'
+    v = ('v' + gitver_version) if gitver_version is not None else 'n/a'
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
-    print "This is gitver " + bold('v' + v)
+    print "This is gitver " + bold(v)
     print "Full build ID is " + bold(b)
 
 
