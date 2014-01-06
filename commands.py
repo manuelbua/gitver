@@ -158,7 +158,7 @@ def cmd_info(args):
         nvn = "none defined, using " + color_next("-" + cfg['next_suffix']) + \
               " suffix"
 
-    print "Latest tag: " + color_tag(last_tag)
+    print "Most recent tag: " + color_tag(last_tag)
     print "NEXT defined as: " + nvn
     print "Current build ID: " + color_tag(repo_info['full-build-id'])
     print "Current version: " + \

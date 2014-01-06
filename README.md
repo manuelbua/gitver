@@ -5,6 +5,13 @@ It enhances `git describe` output and generates version strings in the format:
 
     v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<HASH>
 
+Sample output:
+
+    Latest tag: v0.4.9
+    NEXT defined as: 0.4.10
+    Current build ID: a3a73a5861e5721055f3a12545201e265ba0c097
+    Current version: v0.4.10-SNAPSHOT-2/a3a73a5
+
 The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of that future version.
 
 The `-NEXT` suffix is used when no NEXT version string numbers have been defined and gitver needs to describe a future version.
