@@ -1,4 +1,7 @@
 #!/bin/bash
-# gitver should be in your path to work!
+rm -rf build dist &> /dev/null
 rm gitver/_version.py gitver/_version.pyc gitver/version.py gitver/version.pyc &> /dev/null
 bin/gitver update dev
+
+echo "Installing development version..."
+sudo python2 setup.py develop
