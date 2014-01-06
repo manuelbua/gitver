@@ -2,13 +2,13 @@
 # coding=utf-8
 
 import os
+import pypandoc
 import sys
 from setuptools import setup
 
 
 def readme():
-    with open('README.md') as f:
-        return f.read()
+    return pypandoc.convert('README.md', 'rst')
 
 
 def requirements():
@@ -36,7 +36,7 @@ def get_version():
 
 
 def main():
-    """Runs distutils.setup()"""
+    """Runs setuptools.setup()"""
 
     scripts = [
         'bin/gitver'
