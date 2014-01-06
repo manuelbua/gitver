@@ -2,5 +2,14 @@
 VERSION
 .gitver
 *.pyc
+
+# dev
 _version.py
+
+# release
 version.py
+
+# setuptools
+/dist/
+/*.egg-info
+/*.egg
