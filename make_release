@@ -1,6 +1,12 @@
 #!/bin/bash
-rm -rf build dist &> /dev/null
-rm gitver/_version.py gitver/_version.pyc gitver/version.py gitver/version.pyc &> /dev/null
+
+# remove additional debug version information at this point
+sudo rm -rf build dist &> /dev/null
+rm -f gitver/_version_next.py
+sudo find . -name \*.pyc -delete
+
+
+# build release version info
 bin/gitver update release
 
 echo "Building release version..."

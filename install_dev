@@ -1,9 +1,10 @@
 #!/bin/bash
-rm -rf build dist &> /dev/null
-rm gitver/_version.py gitver/_version.pyc gitver/version.py gitver/version.pyc &> /dev/null
-bin/gitver update dev
-bin/gitver info
 
-echo "Installing development version..."
+sudo rm -rf build dist &> /dev/null
+
+sudo find . -name \*.pyc -delete
+# build NEXT version info
+bin/gitver update dev
 sudo python2 setup.py develop
 sudo rm -rf build dist &> /dev/null
+sudo find . -name \*.pyc -delete

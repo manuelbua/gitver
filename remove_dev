@@ -1,0 +1,6 @@
+#!/bin/bash
+sudo python2 setup.py develop --uninstall > /dev/null
+
+# takes care of installed script but not removed..
+echo "Removing /usr/bin/gitver installed by previous setuptools operation.."
+sudo rm -f /usr/bin/gitver

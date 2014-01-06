@@ -1,10 +1,24 @@
 #!/usr/bin/env python2
 # coding=utf-8
 
-import os
-import pypandoc
 import sys
+
+try:
+    import pypandoc
+except ImportError:
+    print "The \"pypandoc\" package and the pandoc binary on your system " \
+          "need to be present to run setuptools."
+    sys.exit(1)
+
+
 from setuptools import setup
+from gitver.version import gitver_version
+
+try:
+    import gitver._version_next as next
+    vtype = '(NEXT)'
+except ImportError:
+    vtype = '(RELEASE)'
 
 
 def readme():
@@ -16,25 +30,6 @@ def requirements():
         return f.read()
 
 
-def get_version():
-    here = os.path.dirname(__file__)
-    scope = {}
-
-    version = os.path.join(here, 'gitver', 'version.py')
-    try:
-        exec(open(version).read(), scope)
-        return scope['gitver_version']
-    except IOError:
-        print "Couldn't find any *release* version information, trying dev..."
-        version = os.path.join(here, 'gitver', '_version.py')
-        try:
-            exec(open(version).read(), scope)
-            return scope['gitver_version']
-        except IOError:
-            print "Couldn't find any *develop* version information, aborting"
-            sys.exit(1)
-
-
 def main():
     """Runs setuptools.setup()"""
 
@@ -42,9 +37,13 @@ def main():
         'bin/gitver'
     ]
 
+    print "--------------------------------------------------"
+    print "Setting up for " + vtype + " v" + gitver_version
+    print "--------------------------------------------------"
+
     setup(
         name='gitver',
-        version=get_version(),
+        version=version_no_hash,
         description='Simple version string management for git',
         long_description=readme(),
         license='Apache License, Version 2.0',

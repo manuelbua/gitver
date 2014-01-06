@@ -16,25 +16,13 @@ from gitver.storage import KVStore
 from sanity import check_gitignore
 from defines import CFGDIR, PRJ_ROOT
 from config import cfg
-
+from version import gitver_version, gitver_buildid
 
 # file where to store NEXT strings <=> TAG user-defined mappings
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
 TPLDIR = os.path.join(CFGDIR, 'templates')
 
 user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
-
-# try import version information
-try:
-    # try release first
-    from gitver.version import gitver_version, gitver_buildid
-except ImportError:
-    try:
-        # try dev
-        from gitver._version import gitver_version, gitver_buildid
-    except ImportError:
-        gitver_version = None
-        gitver_buildid = None
 
 
 def template_path(name):
@@ -72,24 +60,38 @@ def parse_templates(templates, repo, next_custom):
 
             xformed = Template("".join(lines))
             vstring = build_version_string(repo, next_custom)
-            use_custom = repo['count'] > 0
+            comm_count = repo['count']
+            in_next = comm_count > 0
+            suffix = ''
+            sep = ''
+            if in_next:
+                if not next_custom is None and len(next_custom) > 0:
+                    suffix = cfg['next_custom_suffix']
+                    sep = '-'
+                else:
+                    suffix = cfg['next_suffix']
+                    sep = '-'
 
             # this should NEVER fail
-            if use_custom and not next_custom is None:
+            if in_next and not next_custom is None:
                 user = user_numbers_from_string(next_custom)
                 if not user:
                     print err("Invalid custom NEXT version numbers detected, "
                               "this should NEVER happen at this point!")
                     sys.exit(1)
+                use_next_custom = len(next_custom) > 0
 
             keywords = {
                 'CURRENT_VERSION': vstring,
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
-                'MAJOR': repo['maj'] if not use_custom else int(user[0]),
-                'MINOR': repo['min'] if not use_custom else int(user[1]),
-                'PATCH': repo['patch'] if not use_custom else int(user[2]),
-                'COMMIT_COUNT': repo['count']
+                'MAJOR': repo['maj'] if not in_next else int(user[0]),
+                'MINOR': repo['min'] if not in_next else int(user[1]),
+                'PATCH': repo['patch'] if not in_next else int(user[2]),
+                'COMMIT_COUNT': comm_count,
+                'SUFFIX': suffix,
+                'SEP': sep,
+                'COMMIT_COUNT_STR': str(comm_count) if comm_count > 0 else ''
             }
 
             try:

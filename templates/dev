@@ -1,4 +1,6 @@
-# gitver/_version.py
+# gitver/_version_next.py
+
 # DO NOT TOUCH, AUTOMATICALLY UPDATED!
 gitver_version = '${CURRENT_VERSION}'
 gitver_buildid = '${FULL_BUILD_ID}'
+gitver_pypi = '${MAJOR}.${MINOR}.${PATCH}${SEP}${SUFFIX}${SEP}${COMMIT_COUNT_STR}'
