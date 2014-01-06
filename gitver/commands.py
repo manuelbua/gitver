@@ -72,9 +72,10 @@ def parse_templates(templates, repo, next_custom):
 
             xformed = Template("".join(lines))
             vstring = build_version_string(repo, next_custom)
+            in_next = repo['count'] > 0
 
             # this should NEVER fail
-            if not next_custom is None:
+            if in_next and not next_custom is None:
                 user = user_numbers_from_string(next_custom)
                 if not user:
                     print err("Invalid custom NEXT version numbers detected, "
