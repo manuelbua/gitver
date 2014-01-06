@@ -2,7 +2,6 @@
 # coding=utf-8
 
 import os
-from glob import glob
 import sys
 from setuptools import setup
 
