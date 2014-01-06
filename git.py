@@ -7,9 +7,14 @@ git support library
 
 import sys
 import re
-import sh
-from sh import ErrorReturnCode
 from termcolors import err
+
+try:
+    import sh
+    from sh import ErrorReturnCode
+except ImportError:
+    print "A dependency is missing, please install the \"sh\" package and run gitver again."
+    sys.exit(1)
 
 version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
 
