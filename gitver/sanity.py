@@ -7,8 +7,8 @@ Implements reused sanity checks
 
 import os
 import sys
-from termcolors import err, warn, bold
-from defines import PRJ_ROOT, CFGDIR, CFGDIRNAME, GITIGNOREFILE
+from gitver.termcolors import err, warn, bold
+from gitver.defines import PRJ_ROOT, CFGDIR, CFGDIRNAME, GITIGNOREFILE
 
 
 def check_project_root():

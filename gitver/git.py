@@ -7,7 +7,7 @@ git support library
 
 import sys
 import re
-from termcolors import err
+from gitver.termcolors import err
 
 try:
     import sh

@@ -6,7 +6,7 @@ Project definitions
 """
 
 import os
-from git import project_root
+from gitver.git import project_root
 
 PRJ_ROOT = project_root()
 

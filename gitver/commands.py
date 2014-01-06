@@ -8,13 +8,15 @@ Defines gitver commands
 import re
 import os
 import sys
+from string import Template
+
 from termcolors import *
 from git import get_repo_info
-from storage import KVStore
+from gitver.storage import KVStore
 from sanity import check_gitignore
-from string import Template
 from defines import CFGDIR, PRJ_ROOT
 from config import cfg
+
 
 # file where to store NEXT strings <=> TAG user-defined mappings
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
@@ -24,7 +26,7 @@ user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 
 # try import version information
 try:
-    from version import gitver_version, gitver_buildid
+    from gitver.version import gitver_version, gitver_buildid
 except ImportError:
     gitver_version = 'n/a'
     gitver_buildid = 'n/a'

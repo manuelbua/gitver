@@ -5,9 +5,9 @@
 The default per-repository configuration
 """
 
-from os.path import exists, dirname
 import json
-from defines import CFGFILE
+from os.path import exists, dirname
+from gitver.defines import CFGFILE
 
 default_config = {
     'next_suffix': 'NEXT',
