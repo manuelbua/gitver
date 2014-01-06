@@ -33,8 +33,8 @@ except ImportError:
         # try dev
         from gitver._version import gitver_version, gitver_buildid
     except ImportError:
-        gitver_version = 'n/a'
-        gitver_buildid = 'n/a'
+        gitver_version = None
+        gitver_buildid = None
 
 
 def template_path(name):
@@ -139,8 +139,10 @@ def build_version_string(repo, next_custom=None):
 
 
 def cmd_version(args):
-    print "This is gitver " + bold(gitver_version)
-    print "Full build ID is " + bold(gitver_buildid)
+    v = gitver_version if gitver_version is not None else 'n/a'
+    b = gitver_buildid if gitver_buildid is not None else 'n/a'
+    print "This is gitver " + bold('v' + v)
+    print "Full build ID is " + bold(b)
 
 
 def cmd_init(args):
