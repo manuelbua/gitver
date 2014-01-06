@@ -72,10 +72,10 @@ def parse_templates(templates, repo, next_custom):
 
             xformed = Template("".join(lines))
             vstring = build_version_string(repo, next_custom)
-            in_next = repo['count'] > 0
+            use_custom = repo['count'] > 0
 
             # this should NEVER fail
-            if in_next and not next_custom is None:
+            if use_custom and not next_custom is None:
                 user = user_numbers_from_string(next_custom)
                 if not user:
                     print err("Invalid custom NEXT version numbers detected, "
@@ -86,9 +86,9 @@ def parse_templates(templates, repo, next_custom):
                 'CURRENT_VERSION': vstring,
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
-                'MAJOR': repo['maj'] if next_custom is None else int(user[0]),
-                'MINOR': repo['min'] if next_custom is None else int(user[1]),
-                'PATCH': repo['patch'] if next_custom is None else int(user[2]),
+                'MAJOR': repo['maj'] if not use_custom else int(user[0]),
+                'MINOR': repo['min'] if not use_custom else int(user[1]),
+                'PATCH': repo['patch'] if not use_custom else int(user[2]),
                 'COMMIT_COUNT': repo['count']
             }
 
