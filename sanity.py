@@ -8,14 +8,13 @@ Implements reused sanity checks
 import os
 import sys
 from termcolors import err, warn, bold
-from defines import GITDIR, CFGDIR, CFGDIRNAME
+from defines import PRJ_ROOT, CFGDIR, CFGDIRNAME, GITIGNOREFILE
 
 
-def check_gitdir():
-    # check this is a git repo
-    if not os.path.exists(GITDIR):
-        print err("Please run this tool from within the parent of the .git "
-                  "directory of your project.")
+def check_project_root():
+    if len(PRJ_ROOT) == 0:
+        print err("Couldn't determine your project's root directory, is this "
+                  "a valid git repository?")
         sys.exit(1)
 
 
@@ -29,7 +28,8 @@ def check_config():
 def check_gitignore(exit_on_error=True):
     # check .gitignore for .gitver inclusion
     try:
-        with open('.gitignore', 'r') as f:
+        gifile = os.path.join(GITIGNOREFILE)
+        with open(gifile, 'r') as f:
             if CFGDIRNAME in f.read():
                 return
     except IOError:

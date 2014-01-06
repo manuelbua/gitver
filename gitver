@@ -19,18 +19,16 @@ Manuel Bua
 """
 
 import sys
-
-
 import argparse
 from config import cfg
-from sanity import check_gitdir, check_config, check_gitignore
+from sanity import check_config, check_gitignore, check_project_root
 from commands import cmd_build_template, cmd_clean, cmd_cleanall, cmd_info, \
     cmd_init, cmd_list_next, cmd_list_templates, cmd_next, cmd_version
 from termcolors import warn
 
 
 def main():
-    check_gitdir()
+    check_project_root()
 
     # inject the default action "info" if none specified
     if (len(sys.argv) < 2 or
@@ -41,6 +39,7 @@ def main():
 
     # avoid check if 'init' command
     if not 'init' in sys.argv:
+
         check_config()
         exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
         if not args.ignore_gitignore:
