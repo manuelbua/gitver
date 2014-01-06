@@ -1,0 +1,4 @@
+# gitver/_version.py
+# DO NOT TOUCH, AUTOMATICALLY UPDATED!
+gitver_version = 'v${CURRENT_VERSION}'
+gitver_buildid = '${FULL_BUILD_ID}'

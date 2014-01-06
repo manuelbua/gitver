@@ -1,3 +1,4 @@
 #!/bin/bash
 # gitver should be in your path to work!
-/home/manuel/bin/gitver update version
+rm gitver/version.py
+/home/manuel/bin/gitver update dev

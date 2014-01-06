@@ -26,10 +26,15 @@ user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 
 # try import version information
 try:
+    # try release first
     from gitver.version import gitver_version, gitver_buildid
 except ImportError:
-    gitver_version = 'n/a'
-    gitver_buildid = 'n/a'
+    try:
+        # try dev
+        from gitver._version import gitver_version, gitver_buildid
+    except ImportError:
+        gitver_version = 'n/a'
+        gitver_buildid = 'n/a'
 
 
 def template_path(name):
@@ -44,13 +49,21 @@ def parse_templates(templates, repo, next_custom):
                 lines = fp.readlines()
 
             if len(lines) < 2:
-                print err("The template " + bold(t) + " is not valid")
+                print err("The template \"" + t + "\" is not valid")
                 return
 
             output = str(lines[0]).strip(' #\n')
-            if not os.path.exists(os.path.dirname(output)):
-                print err("The template output directory \"" + bold(output) +
-                          "\"" + "doesn't exists.")
+
+            # resolve relative paths to the project's root
+            if not os.path.isabs(output):
+                output = os.path.join(PRJ_ROOT, output)
+            print output
+
+            outdir = os.path.dirname(output)
+
+            if not os.path.exists(outdir):
+                print err("The template output directory \"" + outdir +
+                          "\" doesn't exists.")
 
             print "Processing template \"" + bold(t) + "\" for " + output + \
                   "..."
@@ -78,11 +91,11 @@ def parse_templates(templates, repo, next_custom):
                 'COMMIT_COUNT': repo['count']
             }
 
-            res = xformed.substitute(keywords)
-
-            # resolve relative paths to the project's root
-            if not os.path.isabs(output):
-                output = os.path.join(PRJ_ROOT, output)
+            try:
+                res = xformed.substitute(keywords)
+            except KeyError as e:
+                print "Unknown key \"" + e.message + "\" found, aborting."
+                sys.exit(1)
 
             try:
                 fp = open(output, 'w')

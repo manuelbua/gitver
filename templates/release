@@ -1,4 +1,4 @@
-# ./gitver/version.py
+# gitver/version.py
 # DO NOT TOUCH, AUTOMATICALLY UPDATED!
-gitver_version = 'v${CURRENT_VERSION}'
+gitver_version = 'v${MAJOR}.${MINOR}.${PATCH}'
 gitver_buildid = '${FULL_BUILD_ID}'
