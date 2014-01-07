@@ -100,13 +100,18 @@ def parse_args():
     p = add_command(sp, 'update', "Perform simple keyword substitution on the "
                                   "specified template file(s) and place it to "
                                   "the path described by the first line in the "
-                                  "template.", cmd_build_template)
+                                  "template. This is usually performed "
+                                  "*AFTER* a release has been tagged already.",
+                    cmd_build_template)
     p.add_argument('templates', default='', type=str)
 
     p = add_command(sp, 'update-promote', "Perform the same operations as "
                                           "\'update\', but promotes the "
                                           "current version string to the "
-                                          "next", cmd_build_template_prom)
+                                          "specified NEXT. Useful when you "
+                                          "need to bump version *BEFORE* "
+                                          "tagging the release",
+                    cmd_build_template_prom)
     p.add_argument('templates', default='', type=str)
 
     p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
