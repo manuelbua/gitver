@@ -41,9 +41,10 @@ def main():
         'bin/gitver'
     ]
 
-    print "--------------------------------------------------"
-    print "Setting up for " + vtype + " v" + gitver_version
-    print "--------------------------------------------------"
+    if make_sdist:
+        print "--------------------------------------------------"
+        print "Setting up for " + vtype + " v" + gitver_version
+        print "--------------------------------------------------"
 
     setup(
         name='gitver',
@@ -52,6 +53,7 @@ def main():
         long_description=readme(),
         license='Apache License, Version 2.0',
         author='Manuel Bua',
+        author_email='manuel.bua[at]gmail.com',
         url='https://github.com/manuelbua/gitver',
         scripts=scripts,
         packages=['gitver'],
