@@ -2,12 +2,10 @@
 
 # remove additional debug version information at this point
 sudo rm -rf build dist &> /dev/null
-rm -f gitver/_version_next.py
 sudo find . -name \*.pyc -delete
 
-
-# build release version info
-bin/gitver update-promote release
+# update version info
+bin/gitver update version
 
 echo "Building release version..."
 python2 setup.py sdist

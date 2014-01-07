@@ -1,10 +1,10 @@
 #!/bin/bash
 
 sudo rm -rf build dist &> /dev/null
-
 sudo find . -name \*.pyc -delete
-# build NEXT version info
-bin/gitver update dev
+
+# update version info
+bin/gitver update version
 sudo python2 setup.py develop
 sudo rm -rf build dist &> /dev/null
 sudo find . -name \*.pyc -delete

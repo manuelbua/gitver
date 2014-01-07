@@ -3,8 +3,9 @@ VERSION
 .gitver
 *.pyc
 
-# exclude NEXT version information from the repo
+# exclude version information
 _version_next.py
+_version.py
 
 # setuptools
 dist/
