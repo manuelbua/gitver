@@ -77,7 +77,6 @@ def parse_templates(templates, repo, next_custom, promote):
                 else:
                     suffix = cfg['next_suffix']
 
-            # this should NEVER fail
             has_user_string = (promote or in_next) and not next_custom is None
             if has_user_string:
                 user = user_numbers_from_string(next_custom)
@@ -88,8 +87,8 @@ def parse_templates(templates, repo, next_custom, promote):
 
             keywords = {
                 'CURRENT_VERSION': vstring,
-                'BUILD_ID': repo['build-id'],
-                'FULL_BUILD_ID': repo['full-build-id'],
+                'BUILD_ID': repo['build-id'] if not promote else '',
+                'FULL_BUILD_ID': repo['full-build-id'] if not promote else '',
                 'MAJOR': repo['maj'] if not has_user_string else int(user[0]),
                 'MINOR': repo['min'] if not has_user_string else int(user[1]),
                 'PATCH': repo['patch'] if not has_user_string else int(user[2]),
@@ -131,11 +130,11 @@ def user_numbers_from_string(user):
 def build_version_string(repo, promote=False, next_custom=None):
     in_next = repo['count'] > 0
     has_next_custom = not next_custom is None and len(next_custom) > 0
+
     if promote:
         if has_next_custom:
             # simulates next real version after proper tagging
             version = next_custom
-            version += "/" + repo['build-id']
             return version
         else:
             return ''
