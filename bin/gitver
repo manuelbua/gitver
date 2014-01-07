@@ -30,10 +30,6 @@ def setup_env():
     if exists(gitver_mod):
         # source tree
         sys.path.insert(1, prefix)
-    else:
-        # install tree
-        install_lib = join(prefix, 'share', 'gitver', 'lib')
-        sys.path.insert(1, install_lib)
 
 setup_env()
 
