@@ -1,4 +1,6 @@
 # gitver/_version_next.py
+#!/usr/bin/env python2
+# coding=utf-8
 
 # DO NOT TOUCH, AUTOMATICALLY UPDATED!
 gitver_version = '${CURRENT_VERSION}'

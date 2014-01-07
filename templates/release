@@ -1,4 +1,6 @@
 # gitver/_version.py
+#!/usr/bin/env python2
+# coding=utf-8
 # this is included for version tracking purposes only
 
 # DO NOT TOUCH, AUTOMATICALLY UPDATED!
