@@ -48,6 +48,11 @@ from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
 
 
 def main():
+    # permit version
+    if len(sys.argv) == 2 and sys.argv[1] == 'version':
+        cmd_version(None)
+        sys.exit(0)
+
     check_project_root()
 
     # inject the default action "info" if none specified
@@ -59,7 +64,6 @@ def main():
 
     # avoid check if 'init' command
     if not 'init' in sys.argv:
-
         check_config()
         exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
         if not args.ignore_gitignore:
