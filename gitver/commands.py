@@ -73,21 +73,21 @@ def parse_templates(templates, repo, next_custom):
                     sep = '-'
 
             # this should NEVER fail
-            if in_next and not next_custom is None:
+            has_user_string = in_next and not next_custom is None
+            if has_user_string:
                 user = user_numbers_from_string(next_custom)
                 if not user:
                     print err("Invalid custom NEXT version numbers detected, "
                               "this should NEVER happen at this point!")
                     sys.exit(1)
-                use_next_custom = len(next_custom) > 0
 
             keywords = {
                 'CURRENT_VERSION': vstring,
                 'BUILD_ID': repo['build-id'],
                 'FULL_BUILD_ID': repo['full-build-id'],
-                'MAJOR': repo['maj'] if not in_next else int(user[0]),
-                'MINOR': repo['min'] if not in_next else int(user[1]),
-                'PATCH': repo['patch'] if not in_next else int(user[2]),
+                'MAJOR': repo['maj'] if not has_user_string else int(user[0]),
+                'MINOR': repo['min'] if not has_user_string else int(user[1]),
+                'PATCH': repo['patch'] if not has_user_string else int(user[2]),
                 'COMMIT_COUNT': comm_count,
                 'SUFFIX': suffix,
                 'SEP': sep,
