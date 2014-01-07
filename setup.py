@@ -2,17 +2,10 @@
 # coding=utf-8
 
 import sys
-
-try:
-    import pypandoc
-except ImportError:
-    print "The \"pypandoc\" package and the pandoc binary on your system " \
-          "need to be present to run setuptools."
-    sys.exit(1)
-
-
 from setuptools import setup
 from gitver.version import gitver_version, gitver_pypi
+
+make_sdist = len({'sdist', 'build'} & set(sys.argv)) > 0
 
 try:
     import gitver._version_next as next
@@ -22,7 +15,18 @@ except ImportError:
 
 
 def readme():
-    return pypandoc.convert('README.md', 'rst')
+    if make_sdist:
+        try:
+            import pypandoc
+            return pypandoc.convert('README.md', 'rst')
+        except ImportError:
+            print "Warning: the \"pypandoc\" package and/or the pandoc " \
+                  "binary can't be found on your system: if you want to " \
+                  "generate the README.rst for PyPI you'll need to install " \
+                  "them properly, else a fallback description will be used."
+
+    # falling back to a simple description
+    return 'Simple version string management for git'
 
 
 def requirements():
