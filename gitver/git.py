@@ -9,15 +9,24 @@ import sys
 import re
 from gitver.termcolors import err
 
+# check for the sh package
 try:
     import sh
-    from sh import ErrorReturnCode
+    from sh import ErrorReturnCode, CommandNotFound
 except ImportError:
     print "A dependency is missing, please install the \"sh\" package and " \
           "run gitver again."
     sys.exit(1)
 
 version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)-(\d+)-g([a-fA-F0-9]+)"
+
+
+def git_version():
+    try:
+        ver = sh.git('--version').stdout.replace('\n', '')
+    except CommandNotFound:
+        return ''
+    return ver
 
 
 def project_root():

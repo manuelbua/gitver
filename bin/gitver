@@ -37,13 +37,18 @@ def setup_env():
 
 setup_env()
 
+# check for the git command
+from gitver.termcolors import warn, err
+from gitver.git import git_version
+v = git_version()
+if not 'git version' in v:
+    print err("This program requires git.")
+    sys.exit(1)
 
-from gitver.config import cfg
 from gitver.sanity import check_config, check_gitignore, check_project_root
 from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
     cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
     cmd_version, cmd_build_template_prom
-from gitver.termcolors import warn
 
 
 def main():
@@ -70,6 +75,8 @@ def main():
 
 
 def parse_args():
+    from gitver.config import cfg
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--ignore-gitignore',
                         help='Ignore the .gitignore warning and continue '
