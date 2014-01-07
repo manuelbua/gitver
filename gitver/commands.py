@@ -59,7 +59,7 @@ def parse_templates(templates, repo, next_custom, promote):
                           "\" doesn't exists.")
 
             print "Processing template \"" + bold(t) + "\" for " + output + \
-                  "..."
+                  "..." + (" (promoting version)" if promote else '')
 
             lines = lines[1:]
             xformed = Template("".join(lines))
