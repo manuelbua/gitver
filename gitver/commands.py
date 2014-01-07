@@ -29,7 +29,12 @@ def template_path(name):
     return os.path.join(TPLDIR, name)
 
 
-def parse_templates(templates, repo, next_custom):
+def parse_templates(templates, repo, next_custom, promote):
+    has_next_custom = not next_custom is None and len(next_custom) > 0
+    if promote and not has_next_custom:
+        print err("No NEXT version to promote to, aborting.")
+        sys.exit(1)
+
     for t in templates.split(' '):
         tpath = template_path(t)
         if os.path.exists(tpath):
@@ -57,23 +62,23 @@ def parse_templates(templates, repo, next_custom):
                   "..."
 
             lines = lines[1:]
-
             xformed = Template("".join(lines))
-            vstring = build_version_string(repo, next_custom)
-            comm_count = repo['count']
+            vstring = build_version_string(repo, promote, next_custom)
+
+            comm_count = repo['count'] if not promote else 0
             in_next = comm_count > 0
             suffix = ''
             sep = ''
+
             if in_next:
-                if not next_custom is None and len(next_custom) > 0:
+                sep = '-'
+                if has_next_custom:
                     suffix = cfg['next_custom_suffix']
-                    sep = '-'
                 else:
                     suffix = cfg['next_suffix']
-                    sep = '-'
 
             # this should NEVER fail
-            has_user_string = in_next and not next_custom is None
+            has_user_string = (promote or in_next) and not next_custom is None
             if has_user_string:
                 user = user_numbers_from_string(next_custom)
                 if not user:
@@ -123,9 +128,19 @@ def user_numbers_from_string(user):
     return data
 
 
-def build_version_string(repo, next_custom=None):
+def build_version_string(repo, promote=False, next_custom=None):
     in_next = repo['count'] > 0
-    if in_next and not next_custom is None and len(next_custom) > 0:
+    has_next_custom = not next_custom is None and len(next_custom) > 0
+    if promote:
+        if has_next_custom:
+            # simulates next real version after proper tagging
+            version = next_custom
+            version += "/" + repo['build-id']
+            return version
+        else:
+            return ''
+
+    if in_next and has_next_custom:
         version = next_custom
         version += "-" + cfg['next_custom_suffix']
     else:
@@ -186,8 +201,12 @@ def cmd_info(args):
     print "Most recent tag: " + color_tag(last_tag)
     print "NEXT defined as: " + nvn
     print "Current build ID: " + color_tag(repo_info['full-build-id'])
+    promoted = build_version_string(repo_info, True, next_custom)
     print "Current version: " + \
-          color_version("v" + build_version_string(repo_info, next_custom))
+          color_version(
+              "v" + build_version_string(repo_info, False, next_custom) +
+              (" => v" + promoted if len(promoted) > 0 else '')
+          )
 
 
 def cmd_list_templates(args):
@@ -200,13 +219,21 @@ def cmd_list_templates(args):
         print "No templates available in " + TPLDIR
 
 
-def cmd_build_template(args):
+def _cmd_build_template(args, promote=False):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    parse_templates(args.templates, repo_info, next_custom)
+    parse_templates(args.templates, repo_info, next_custom, promote)
+
+
+def cmd_build_template(args):
+    _cmd_build_template(args, False)
+
+
+def cmd_build_template_prom(args):
+    _cmd_build_template(args, True)
 
 
 def cmd_next(args):

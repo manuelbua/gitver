@@ -7,7 +7,7 @@ sudo find . -name \*.pyc -delete
 
 
 # build release version info
-bin/gitver update release
+bin/gitver update-promote release
 
 echo "Building release version..."
 python2 setup.py sdist
