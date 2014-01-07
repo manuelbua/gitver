@@ -48,7 +48,6 @@ def main():
         long_description=readme(),
         license='Apache License, Version 2.0',
         author='Manuel Bua',
-        author_email='manuel.bua@gmail.com',
         url='https://github.com/manuelbua/gitver',
         scripts=scripts,
         packages=['gitver'],
