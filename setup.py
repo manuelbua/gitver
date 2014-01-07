@@ -12,7 +12,7 @@ except ImportError:
 
 
 from setuptools import setup
-from gitver.version import gitver_version,gitver_pypi
+from gitver.version import gitver_version, gitver_pypi
 
 try:
     import gitver._version_next as next
