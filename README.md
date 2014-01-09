@@ -336,8 +336,8 @@ This will produce the following file at ```/home/manuel/dev/python/project/versi
     # coding=utf-8
     
     # MACHINE-GENERATED CODE, DO NOT TOUCH!
-    userve_version = "v0.4.10-SNAPSHOT-2/a3a73a58"
-    userve_build_id = "a3a73a5861e5721055f3a12545201e265ba0c097"
+    project_version = "v0.4.10-SNAPSHOT-2/a3a73a58"
+    project_build_id = "a3a73a5861e5721055f3a12545201e265ba0c097"
    
 
 
