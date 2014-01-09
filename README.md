@@ -1,3 +1,6 @@
+[![PyPi version](https://pypip.in/v/gitver/badge.png)](https://crate.io/packages/gitver/)
+[![PyPi downloads](https://pypip.in/d/gitver/badge.png)](https://crate.io/packages/gitver/)
+
 ## What is it?
 A very simple, lightweight, tag-based version string manager for git, written in Python.
 
