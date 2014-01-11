@@ -160,6 +160,8 @@ def cmd_version(args):
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
     print "This is gitver " + bold(v)
     print "Full build ID is " + bold(b)
+    from gitver import __license__
+    print __license__
 
 
 def cmd_init(args):
