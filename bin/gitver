@@ -96,26 +96,16 @@ def parse_args():
     p.add_argument('templates', default='', type=str)
 
     p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
-                                "currently reachable last tag. This will "
-                                "suppress the usage of the \"-" +
-                                cfg['next_suffix'] +
-                                "\" suffix, enable use of the custom \"-" +
-                                cfg['next_custom_suffix'] +
-                                "\" suffix and will use the supplied version "
-                                "numbers instead.", cmd_next)
+                                "currently reachable last tag.", cmd_next)
     p.add_argument('next_version_numbers', default='', type=str)
 
     p = add_command(sp, 'clean', "Resets the NEXT custom string for the "
                                  "currently active tag, or the specified tag, "
-                                 "to a clean state. Usage of the \"-" +
-                                 cfg['next_suffix'] + "\" suffix is restored.",
-                    cmd_clean)
+                                 "to a clean state.", cmd_clean)
     p.add_argument('tag', nargs='?', type=str, default='')
 
     add_command(sp, 'cleanall', "Resets all the NEXT custom strings for this"
-                                "repository. Usage of the \"-" +
-                                cfg['next_suffix'] +
-                                "\" suffix is restored.", cmd_cleanall)
+                                "repository.", cmd_cleanall)
     return parser.parse_args()
 
 
