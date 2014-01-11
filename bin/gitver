@@ -30,8 +30,7 @@ if not 'git version' in v:
 
 from gitver.sanity import check_config, check_gitignore, check_project_root
 from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
-    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
-    cmd_version, cmd_build_template_prom
+    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, cmd_version
 
 
 def main():
@@ -94,15 +93,6 @@ def parse_args():
                                   "template. This is usually performed "
                                   "*AFTER* a release has been tagged already.",
                     cmd_build_template)
-    p.add_argument('templates', default='', type=str)
-
-    p = add_command(sp, 'update-promote', "Perform the same operations as "
-                                          "\'update\', but promotes the "
-                                          "current version string to the "
-                                          "specified NEXT. Useful when you "
-                                          "need to bump version *BEFORE* "
-                                          "tagging the release",
-                    cmd_build_template_prom)
     p.add_argument('templates', default='', type=str)
 
     p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
