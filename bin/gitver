@@ -25,13 +25,12 @@ from gitver.termcolors import warn, err
 from gitver.git import git_version
 v = git_version()
 if not 'git version' in v:
-    print err("This program requires git.")
+    print err("This program requires \"git\" to be installed and configured.")
     sys.exit(1)
 
 from gitver.sanity import check_config, check_gitignore, check_project_root
 from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
-    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
-    cmd_version, cmd_build_template_prom
+    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, cmd_version
 
 
 def main():
@@ -96,36 +95,17 @@ def parse_args():
                     cmd_build_template)
     p.add_argument('templates', default='', type=str)
 
-    p = add_command(sp, 'update-promote', "Perform the same operations as "
-                                          "\'update\', but promotes the "
-                                          "current version string to the "
-                                          "specified NEXT. Useful when you "
-                                          "need to bump version *BEFORE* "
-                                          "tagging the release",
-                    cmd_build_template_prom)
-    p.add_argument('templates', default='', type=str)
-
     p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
-                                "currently reachable last tag. This will "
-                                "suppress the usage of the \"-" +
-                                cfg['next_suffix'] +
-                                "\" suffix, enable use of the custom \"-" +
-                                cfg['next_custom_suffix'] +
-                                "\" suffix and will use the supplied version "
-                                "numbers instead.", cmd_next)
+                                "currently reachable last tag.", cmd_next)
     p.add_argument('next_version_numbers', default='', type=str)
 
     p = add_command(sp, 'clean', "Resets the NEXT custom string for the "
                                  "currently active tag, or the specified tag, "
-                                 "to a clean state. Usage of the \"-" +
-                                 cfg['next_suffix'] + "\" suffix is restored.",
-                    cmd_clean)
+                                 "to a clean state.", cmd_clean)
     p.add_argument('tag', nargs='?', type=str, default='')
 
     add_command(sp, 'cleanall', "Resets all the NEXT custom strings for this"
-                                "repository. Usage of the \"-" +
-                                cfg['next_suffix'] +
-                                "\" suffix is restored.", cmd_cleanall)
+                                "repository.", cmd_cleanall)
     return parser.parse_args()
 
 
