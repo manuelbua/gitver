@@ -25,7 +25,7 @@ from gitver.termcolors import warn, err
 from gitver.git import git_version
 v = git_version()
 if not 'git version' in v:
-    print err("This program requires git.")
+    print err("This program requires \"git\" to be installed and configured.")
     sys.exit(1)
 
 from gitver.sanity import check_config, check_gitignore, check_project_root
