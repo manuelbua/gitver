@@ -201,7 +201,7 @@ def cmd_info(args):
     if has_next_custom:
         nvn = color_next(next_custom)
     else:
-        nvn = "none defined, using " + \
+        nvn = "None, defaulting to " + \
               color_next("-" + cfg['default_meta_pr_in_next_no_next']) + \
               " suffix"
 
@@ -209,7 +209,9 @@ def cmd_info(args):
 
     if repo_info['pr'] is None and repo_info['count'] > 0:
         print "Using NEXT defined as: " + nvn
+        print "Pre-release metadata: " + color_tag(str(repo_info['pr']))
     elif repo_info['pr'] is not None:
+        print "NEXT defined as: " + nvn
         print "Using pre-release metadata: " + color_tag(str(repo_info['pr']))
 
     print "Current build ID: " + color_tag(repo_info['full-build-id'])
