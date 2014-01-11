@@ -204,10 +204,9 @@ def cmd_info(args):
     print "Current build ID: " + color_tag(repo_info['full-build-id'])
     promoted = build_version_string(repo_info, True, next_custom)
     print "Current version: " + \
-          color_version(
-              "v" + build_version_string(repo_info, False, next_custom) +
-              (" => v" + promoted if len(promoted) > 0 else '')
-          )
+          color_version("v" +
+                        build_version_string(repo_info, False, next_custom)) + \
+          (" => " + color_promoted("v" + promoted) if len(promoted) > 0 else '')
 
 
 def cmd_list_templates(args):

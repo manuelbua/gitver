@@ -17,6 +17,9 @@ try:
     def color_version(text):
         return color(text, fg=255, bg=25, style='bold')
 
+    def color_promoted(text):
+        return color(text, fg=255, bg=33, style='bold')
+
     def warn(text):
         return color(text, fg=214, style='bold')
 
