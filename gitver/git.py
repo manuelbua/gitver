@@ -49,6 +49,15 @@ def describe():
     return vm
 
 
+def count_tag_to_head(tag):
+    try:
+        c = sh.git(
+            'rev-list', tag + "..HEAD", '--count').stdout.replace('\n', '')
+        return int(c)
+    except ErrorReturnCode:
+        return False
+
+
 def get_build_id():
     try:
         full_build_id = str(
@@ -65,6 +74,16 @@ def last_tag():
         return False
 
     return tag
+
+
+def data_from_tag(tag):
+    try:
+        data = re.match(tag_matcher, tag).groups()
+        if len(data) < 3:
+            raise AttributeError
+    except AttributeError:
+        return None
+    return data
 
 
 def get_repo_info():
