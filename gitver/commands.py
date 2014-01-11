@@ -190,6 +190,15 @@ def cmd_init(args):
         print "Nothing to do."
 
 
+def cmd_current(args):
+    next_store = KVStore(NEXT_STORE_FILE)
+    repo_info = get_repo_info()
+    last_tag = repo_info['last-tag']
+    has_next_custom = next_store.has(last_tag)
+    next_custom = next_store.get(last_tag) if has_next_custom else None
+    print build_version_string(repo_info, False, next_custom)
+
+
 def cmd_info(args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()

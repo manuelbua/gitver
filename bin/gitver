@@ -30,7 +30,8 @@ if not 'git version' in v:
 
 from gitver.sanity import check_config, check_gitignore, check_project_root
 from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
-    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, cmd_version
+    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
+    cmd_version, cmd_current
 
 
 def main():
@@ -77,9 +78,11 @@ def parse_args():
     add_command(sp, 'version', "Show gitver version", cmd_version)
     add_command(sp, 'init', "Create gitver's configuration directory", cmd_init)
 
-    add_command(sp, 'info', "Print version information for this repository "
-                            "[default]",
+    add_command(sp, 'info', "Print full version information and tag-based "
+                            "metadata for this repository [default]",
                 cmd_info)
+    add_command(sp, 'current', "Print the current version information only, "
+                               "without any formatting applied.", cmd_current)
 
     add_command(sp, 'list-templates', "Enumerates available templates",
                 cmd_list_templates)
