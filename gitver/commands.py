@@ -37,7 +37,12 @@ def parse_templates(templates, repo, next_custom):
                 lines = fp.readlines()
 
             if len(lines) < 2:
-                print err("The template \"" + t + "\" is not valid")
+                print err("The template \"" + t + "\" is not valid, aborting.")
+                return
+
+            if not lines[0].startswith('#'):
+                print err("The template \"" + t + "\" doesn't define any valid"
+                                                  "output, aborting.")
                 return
 
             output = str(lines[0]).strip(' #\n')
