@@ -5,6 +5,7 @@
 The default per-repository configuration
 """
 
+import sys
 import json
 import string
 from os.path import exists, dirname
@@ -28,7 +29,7 @@ default_config_text = """{
     "meta_pr_prefix": "-",
 
     # default commit count prefix
-    "commit_count_prefix": "-",
+    "commit_count_prefix": ".",
 
     # Python-based format string variable names are:
     #     maj, min, patch, meta_pr_prefix, meta_pr, commit_count_prefix,
@@ -61,6 +62,7 @@ default_config = json.loads(remove_comments(default_config_text))
 def init_or_load_user_config():
     # try load user configuration
     try:
+
         with open(CFGFILE, 'r') as f:
             data = ''
             for line in f:
@@ -75,7 +77,8 @@ def init_or_load_user_config():
                            "\" is a deprecated version.\nPlease rename or "
                            "remove it, gitver will then create a new one for "
                            "you.")
-    except (IOError, ValueError):
+
+    except IOError:
         user = dict()
 
         # save to file as an example
@@ -85,6 +88,13 @@ def init_or_load_user_config():
                     f.writelines(default_config_text)
                     print "(wrote default configuration file \"" + CFGFILE + \
                           "\""
+
+    except ValueError as v:
+        print "An error occured parsing the configuration file at \"" + \
+              CFGFILE + "\": " + v.message
+        print "You could rename or delete it, gitver will then create a new " \
+              "one for you."
+        sys.exit(1)
 
     # merge user with defaults
     return dict(default_config, **user)
