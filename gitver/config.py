@@ -9,6 +9,7 @@ import json
 import string
 from os.path import exists, dirname
 from gitver.defines import CFGFILE
+from termcolors import warn
 
 default_config_text = """{
     # automatically generated configuration file
@@ -67,6 +68,13 @@ def init_or_load_user_config():
                 if not l.startswith('#'):
                     data += l
             user = json.loads(data)
+
+            # check for old configuration file format
+            if len(user) <= 2:
+                print warn("Your configuration file \"" + CFGFILE +
+                           "\" is a deprecated version.\nPlease rename or "
+                           "remove it, gitver will then create a new one for "
+                           "you.")
     except (IOError, ValueError):
         user = dict()
 
