@@ -113,7 +113,8 @@ def get_repo_info():
 
     data = data_from_tag(tag)
     if data is None:
-        print "Couldn't retrieve version information from tag \"" + tag + "\""
+        print err("Couldn't retrieve version information from tag \"" + tag +
+                  "\"")
         sys.exit(1)
 
     vmaj = int(data[0])
