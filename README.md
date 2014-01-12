@@ -4,26 +4,21 @@
 ## What is it?
 A very simple, lightweight, tag-based version string manager for git, written in Python.
 
-It enhances `git describe` output and generates version strings in the format:
+It generates version strings by using Python-based formatting rules coupled with repository information, augmented by user-defined data.
 
-    v<MAJ>.<MIN>.<PATCH>-[<NEXT>|<SNAPSHOT>]-[<COMMIT_COUNT>]/<HASH>
+This make it easy to adopt versioning schemes such as [Semantic Versioning](https://semver.org) and keeps version information automagically updated.
 
-The `-SNAPSHOT` suffix is used when the NEXT version string numbers are known, to denote a snapshot of that future version.
+Sample output (this repository):
 
-The `-NEXT` suffix is used when no NEXT version string numbers have been defined and gitver needs to describe a future version.
-
-Note that suffixes such as `-NEXT` and `-SNAPSHOT`are customizable.
-
-Sample output:
-
-    Latest tag: v0.4.9
-    NEXT defined as: 0.4.10
-    Current build ID: a3a73a5861e5721055f3a12545201e265ba0c097
-    Current version: v0.4.10-SNAPSHOT-2/a3a73a5
+    Most recent tag: v0.3.0-RC
+    Using pre-release metadata: RC
+    Current build ID: 977fbbc7043691ed519cb26ab62772ef8fa8a582
+    Current version: v0.3.0-RC
 
 ## Helps in version string management
 
 Coupled with [git hooks](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), *gitver* version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
+
 
 ## Why?
 
@@ -33,17 +28,25 @@ Furthermore, i want the version string and/or other useful information to be **e
 
 ## Workflow
 
-Your workflow shouldn't change much from what you are used to, but before using it, please ensure your repository's tags are **not** already being used for some other purpose, *gitver* expects them in the format ```vX.Y.Z```
+Your workflow shouldn't change much from what you are used to, but before using it, please ensure your repository's tags are **not** already being used for some other purpose, *gitver* expects them in the format `vX.Y.Z` or `vX.Y.Z-PRE-RELEASE-METADATA`
 
 The following is a workflow exemplification of using *gitver* to manage version strings for your project, given it has already been setup:
 
 - you are working on your repository, now you are ready to promote the current version to the next release
 - create a release tag, `git tag -a v0.0.2 -m 'Bump version'`
 - defines your NEXT version, the one you are going to work *towards* to by running `gitver next 0.0.3`
-- run `gitver info` and check everything is fine
+- run `gitver` and check everything is fine
 - **OPTIONAL** update your project's version information by running `gitver update <template name>`, then rebuild the project to reflect version changes
 - any other manual house-keeping in-between releases can be performed now
 - now you are working towards the NEXT release, repeat when release time has came again
+
+
+## Notes on the example output in this document
+
+As of `v0.3.0-RC1`, the default version string format has changed, adopting the [Semantic Versioning](https://semver.org) scheme: example output such as `v0.0.0/e2c8ce21` will be different, but the workflow itself hasn't changed, so you should be able to follow this document without problems.
+
+*I'll update the examples' output as soon as i've the time to do it, sorry!*
+
 
 ## How does it work?
 
@@ -97,19 +100,50 @@ The version string will now be:
 
 ## Config file
 
-*gitver* uses a per-repository configuration file, in the format of a JSON document: currently there isn't much to fiddle with, future versions may see this expanded a bit.
+*gitver* uses a per-repository, JSON-based configuration file.
 
-Currently, the default configuration file gets created automatically in `.gitver/config` and it contains the following, tweakable settings:
+The default configuration file gets created automatically in `.gitver/config` and it contains the following, tweakable settings:
 
-    {"next_suffix": "NEXT", "next_custom_suffix": "SNAPSHOT"}
+    {
+        # automatically generated configuration file
+        #
+        # These defaults implements Semantic Versioning as described in the latest
+        # available documentation at http://semver.org/spec/v2.0.0.html
 
+        # default pre-release metadata when commit count > 0 AND
+        # no NEXT has been defined
+        "default_meta_pr_in_next_no_next": "NEXT",
+
+        # default pre-release metadata when commit count > 0
+        "default_meta_pr_in_next": "SNAPSHOT",
+
+        # default pre-release metadata prefix
+        "meta_pr_prefix": "-",
+
+        # default commit count prefix
+        "commit_count_prefix": "-",
+
+        # Python-based format string variable names are:
+        #     maj, min, patch, meta_pr_prefix, meta_pr, commit_count_prefix,
+        #     commit_count, build_id, build_id_full
+        # Note that prefixes will be empty strings if their valued counterpart doesn't
+        # have a meaningful value (i.e., 0 for commit count, no meta pre-release, ..)
+
+        # format string used to build the current version string when the
+        # commit count is 0
+        "format": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s",
+
+        # format string used to build the current version string when the
+        # commit count is > 0
+        "format_next": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
+    }
 
 ## Basic usage 
 
     $ gitver --help
     usage: gitver [-h] [--ignore-gitignore]
                   
-                  {version,init,info,list-templates,list-next,update,next,clean,cleanall}
+                  {version,init,info,current,list-templates,list-next,update,next,clean,cleanall}
                   ...
 
     optional arguments:
@@ -119,28 +153,27 @@ Currently, the default configuration file gets created automatically in `.gitver
                             YOUR own risk)
 
     Valid commands:
-      {version,init,info,list-templates,list-next,update,next,clean,cleanall}
+      {version,init,info,current,list-templates,list-next,update,next,clean,cleanall}
         version             Show gitver version
         init                Create gitver's configuration directory
-        info                Print version information for this repository
-                            [default]
+        info                Print full version information and tag-based metadata
+                            for this repository [default]
+        current             Print the current version information only, without
+                            any formatting applied.
         list-templates      Enumerates available templates
         list-next           Enumerates NEXT custom strings
         update              Perform simple keyword substitution on the specified
                             template file(s) and place it to the path described by
-                            the first line in the template.
+                            the first line in the template. This is usually
+                            performed *AFTER* a release has been tagged already.
         next                Sets the NEXT version numbers for the currently
-                            reachable last tag. This will suppress the usage of
-                            the "-NEXT" suffix, enable use of the custom
-                            "-SNAPSHOT" suffix and will use the supplied version
-                            numbers instead.
+                            reachable last tag.
         clean               Resets the NEXT custom string for the currently active
-                            tag, or the specified tag, to a clean state. Usage of
-                            the "-NEXT" suffix is restored.
+                            tag, or the specified tag, to a clean state.
         cleanall            Resets all the NEXT custom strings for thisrepository.
-                            Usage of the "-NEXT" suffix is restored.
 
-The tool expects the tags in your repository to get used to describe version information in the format `vX.Y.Z`, so you should take that into account and use them to properly mark a release version in your repository.
+
+The tool expects the tags in your repository to get used to describe version information in the format `vX.Y.Z` or `vX.Y.Z-PRE-RELEASE-METADATA`, so you should take that into account and use them to properly mark a release version in your repository.
 
 If no tags in this format are found *gitver* will not run.
 
@@ -282,13 +315,17 @@ Given these basic assumptions:
 
 Here is the list of variables, with their values, available for templates:
 
-    ${CURRENT_VERSION} = 0.4.10-SNAPSHOT-2/a3a73a58
-    ${BUILD_ID}        = a3a73a58
-    ${FULL_BUILD_ID}   = a3a73a5861e5721055f3a12545201e265ba0c097
-    ${MAJOR}           = 0
-    ${MINOR}           = 4
-    ${PATCH}           = 10
-    ${COMMIT_COUNT}    = 2
+    ${CURRENT_VERSION}     = 0.4.10-SNAPSHOT-2/a3a73a58
+    ${BUILD_ID}            = a3a73a58
+    ${FULL_BUILD_ID}       = a3a73a5861e5721055f3a12545201e265ba0c097
+    ${MAJOR}               = 0
+    ${MINOR}               = 4
+    ${PATCH}               = 10
+    ${COMMIT_COUNT}        = 2
+    ${COMMIT_COUNT_STR}    = 2 (or an empty string if 0)
+    ${COMMIT_COUNT_PREFIX} = either the 'commit_count_prefix' specified in the config file or an empty string, if the commit count is 0
+    ${META_PR}             = either the pre-release metadata from the last reachable tag, the 'default_meta_pr_in_next' (from config file), the 'default_meta_pr_in_next_no_next' (from config file) or an empty string, depending on the state of the repository
+    ${META_PR_PREFIX}      = either the 'meta_pr_prefix' specified in the config file or an empty string, if no pre-release metadata is available for use
 
 The list could later be expanded and improved, to cover much more information, such as date, time, let me know your suggestion!
 
@@ -339,7 +376,6 @@ This will produce the following file at ```/home/manuel/dev/python/project/versi
     project_version = "v0.4.10-SNAPSHOT-2/a3a73a58"
     project_build_id = "a3a73a5861e5721055f3a12545201e265ba0c097"
    
-
 
 ## Templates + git hooks
 
