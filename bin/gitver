@@ -35,21 +35,16 @@ from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
 
 
 def main():
-    # permit version
+    # always permit the "version" command to run
     if len(sys.argv) == 2 and sys.argv[1] == 'version':
         cmd_version(None)
         sys.exit(0)
 
     check_project_root()
-
-    # inject the default action "info" if none specified
-    if (len(sys.argv) < 2 or
-            len(sys.argv) == 2 and sys.argv[1] == '--ignore-gitignore'):
-        sys.argv.append('info')
-
+    inject_default_action()
     args = parse_args()
 
-    # avoid check if 'init' command
+# avoid check if 'init' command
     if not 'init' in sys.argv:
         check_config()
         exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
@@ -61,9 +56,16 @@ def main():
     return args.func(args)
 
 
-def parse_args():
-    from gitver.config import cfg
+def inject_default_action():
+    is_short = len(sys.argv) < 2
+    only_flags = True
+    for arg in sys.argv[1:]:
+        only_flags = only_flags and arg.startswith('--')
+    if is_short or only_flags:
+        sys.argv.append('info')
 
+
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ignore-gitignore',
                         help='Ignore the .gitignore warning and continue '
