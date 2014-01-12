@@ -6,7 +6,7 @@ A very simple, lightweight, tag-based version string manager for git, written in
 
 It generates version strings by using Python-based formatting rules coupled with repository information, augmented by user-defined data.
 
-This make it easy to adopt versioning schemes such as [Semantic Versioning](https://semver.org) and keeps version information automagically updated.
+Makes very easy to adopt versioning schemes such as [Semantic Versioning](https://semver.org) and keeps version information automagically updated.
 
 Sample output (this repository):
 
