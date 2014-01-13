@@ -2,9 +2,9 @@
 # coding=utf-8
 
 
-gitver_version = ''
-gitver_buildid = ''
-gitver_pypi = ''
+gitver_version = None
+gitver_buildid = None
+gitver_pypi = None
 
 try:
     import _version as v
