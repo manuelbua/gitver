@@ -1,0 +1,14 @@
+#/tmp/test
+current=${CURRENT_VERSION}
+build_id=${BUILD_ID}
+full_build_id=${FULL_BUILD_ID}
+maj=${MAJOR}
+min=${MINOR}
+patch=${PATCH}
+commit_count=${COMMIT_COUNT}
+commit_count_str="${COMMIT_COUNT_STR}"
+commit_count_prefix=${COMMIT_COUNT_PREFIX}
+meta_pr=${META_PR}
+meta_pr_prefix=${META_PR_PREFIX}
+
+constructed="${MAJOR}.${MINOR}.${PATCH}${META_PR_PREFIX}${META_PR}${COMMIT_COUNT_PREFIX}${COMMIT_COUNT_STR}+${BUILD_ID}"

@@ -2,6 +2,7 @@
 VERSION
 .gitver/*
 !.gitver/config
+!.gitver/templates
 *.pyc
 
 # exclude version information
