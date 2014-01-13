@@ -35,12 +35,13 @@ def check_gitignore(exit_on_error=True):
     except IOError:
         pass
 
-    term.warn("Warning: it's highly recommended to EXCLUDE the gitver "
-              "configuration from the repository!")
-    term.prn("Please include the following line in your .gitignore file:")
-    term.prn("    " + CFGDIRNAME)
+    term.warn("Warning: it's highly recommended to EXCLUDE the gitver\n"
+              "configuration from the repository.")
+    term.prn("Templates and configuration file can be safely tracked by git,\n"
+             "but you need to make sure you understand what you are doing.\n")
+    term.prn("If you are not sure, please include the following line in\n"
+             "your .gitignore file:")
+    term.prn("    " + CFGDIRNAME + "\n")
 
     if exit_on_error:
         sys.exit(1)
-    else:
-        print ""
