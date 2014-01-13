@@ -96,8 +96,8 @@ def get_repo_info():
     # retrieve basic repository information
     desc_hash = describe_hash()
     if desc_hash is None or not desc_hash:
-        term.err("Error, couldn't describe current hash, please check the"
-                 " presence of at least one proper tag (vX.Y.Z or "
+        term.err("Couldn't describe current hash, please check the presence of "
+                 "at least one proper tag (vX.Y.Z or "
                  "vX.Y.Z[-RELEASE.METADATA]).")
         sys.exit(1)
 
