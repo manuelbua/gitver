@@ -10,7 +10,7 @@ import json
 import string
 from os.path import exists, dirname
 from gitver.defines import CFGFILE
-from termcolors import warn
+from termcolors import term
 
 default_config_text = """{
     # automatically generated configuration file
@@ -77,10 +77,10 @@ def init_or_load_user_config():
 
             # check for old configuration file format
             if len(user) <= 2:
-                print warn("Your configuration file \"" + CFGFILE +
-                           "\" is a deprecated version.\nPlease rename or "
-                           "remove it, gitver will then create a new one for "
-                           "you.")
+                term.warn("Your configuration file \"" + CFGFILE +
+                          "\" is a deprecated version.\nPlease rename or "
+                          "remove it, gitver will then create a new one for "
+                          "you.")
 
     except IOError:
         user = dict()
@@ -90,14 +90,14 @@ def init_or_load_user_config():
             if exists(dirname(CFGFILE)):
                 with open(CFGFILE, 'w') as f:
                     f.writelines(default_config_text)
-                    print "(wrote default configuration file \"" + CFGFILE + \
-                          "\""
+                    term.prn("(wrote default configuration file \"" + CFGFILE +
+                             "\")")
 
     except ValueError as v:
-        print "An error occured parsing the configuration file at \"" + \
-              CFGFILE + "\": " + v.message
-        print "You could rename or delete it, gitver will then create a new " \
-              "one for you."
+        term.prn("An error occured parsing the configuration file at \"" +
+                 CFGFILE + "\": " + v.message)
+        term.prn("You could rename or delete it, gitver will then create a "
+                 "new one for you.")
         sys.exit(1)
 
     # merge user with defaults

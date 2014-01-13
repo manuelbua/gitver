@@ -10,7 +10,7 @@ import os
 import sys
 from string import Template
 
-from termcolors import *
+from termcolors import term, bold
 from git import get_repo_info
 from gitver.storage import KVStore
 from sanity import check_gitignore
@@ -37,12 +37,12 @@ def parse_templates(templates, repo, next_custom):
                 lines = fp.readlines()
 
             if len(lines) < 2:
-                print err("The template \"" + t + "\" is not valid, aborting.")
+                term.err("The template \"" + t + "\" is not valid, aborting.")
                 return
 
             if not lines[0].startswith('#'):
-                print err("The template \"" + t + "\" doesn't define any valid"
-                                                  "output, aborting.")
+                term.err("The template \"" + t + "\" doesn't define any valid "
+                                                 "output, aborting.")
                 return
 
             output = str(lines[0]).strip(' #\n')
@@ -54,11 +54,11 @@ def parse_templates(templates, repo, next_custom):
             outdir = os.path.dirname(output)
 
             if not os.path.exists(outdir):
-                print err("The template output directory \"" + outdir +
-                          "\" doesn't exists.")
+                term.err("The template output directory \"" + outdir +
+                         "\" doesn't exists.")
 
-            print "Processing template \"" + bold(t) + "\" for " + output + \
-                  "..."
+            term.prn("Processing template \"" + bold(t) + "\" for " + output +
+                     "...")
 
             lines = lines[1:]
             xformed = Template("".join(lines))
@@ -83,7 +83,7 @@ def parse_templates(templates, repo, next_custom):
             try:
                 res = xformed.substitute(keywords)
             except KeyError as e:
-                print "Unknown key \"" + e.message + "\" found, aborting."
+                term.err("Unknown key \"" + e.message + "\" found, aborting.")
                 sys.exit(1)
 
             try:
@@ -91,12 +91,12 @@ def parse_templates(templates, repo, next_custom):
                 fp.write(res)
                 fp.close()
             except IOError:
-                print err("Couldn't write file \"" + output + "\"")
+                term.err("Couldn't write file \"" + output + "\"")
 
             stat = os.stat(output)
-            print "Done, " + str(stat.st_size) + " bytes written."
+            term.prn("Done, " + str(stat.st_size) + " bytes written.")
         else:
-            print err("Couldn't find the \"" + t + "\" template")
+            term.err("Couldn't find the \"" + t + "\" template")
 
 
 def user_numbers_from_string(user):
@@ -123,7 +123,7 @@ def build_format_args(repo_info, next_custom=None):
     if in_next and has_next_custom and not has_pr:
         u = user_numbers_from_string(next_custom)
         if not u:
-            print err("Invalid custom NEXT version numbers detected!")
+            term.err("Invalid custom NEXT version numbers detected!")
             sys.exit(1)
         vmaj = u[0]
         vmin = u[1]
@@ -167,10 +167,10 @@ def build_version_string(repo, promote=False, next_custom=None):
 def cmd_version(args):
     v = ('v' + gitver_version) if gitver_version is not None else 'n/a'
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
-    print "This is gitver " + bold(v)
-    print "Full build ID is " + bold(b)
+    term.prn("This is gitver " + bold(v))
+    term.prn("Full build ID is " + bold(b))
     from gitver import __license__
-    print __license__
+    term.prn(__license__)
 
 
 def cmd_init(args):
@@ -179,19 +179,19 @@ def cmd_init(args):
     if not os.path.exists(CFGDIR):
         i += 1
         os.makedirs(CFGDIR)
-        print "Created " + CFGDIR
+        term.prn("Created " + CFGDIR)
 
     if not os.path.exists(TPLDIR):
         i += 1
         os.makedirs(TPLDIR)
-        print "Created " + TPLDIR
+        term.prn("Created " + TPLDIR)
 
     check_gitignore()
 
     if i > 0:
-        print "Done."
+        term.prn("Done.")
     else:
-        print "Nothing to do."
+        term.prn("Nothing to do.")
 
 
 def cmd_current(args):
@@ -200,7 +200,7 @@ def cmd_current(args):
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    print build_version_string(repo_info, False, next_custom)
+    term.prn(build_version_string(repo_info, False, next_custom))
 
 
 def cmd_info(args):
@@ -212,38 +212,41 @@ def cmd_info(args):
     next_custom = next_store.get(last_tag) if has_next_custom else None
 
     if has_next_custom:
-        nvn = color_next(next_custom)
+        nvn = term.next(next_custom)
     else:
         nvn = "none, defaulting to " + \
-              color_next("-" + cfg['default_meta_pr_in_next_no_next']) + \
+              term.next("-" + cfg['default_meta_pr_in_next_no_next']) + \
               " suffix"
 
-    print "Most recent tag: " + color_tag(last_tag)
+    term.prn("Most recent tag: " + term.tag(last_tag))
 
     if repo_info['pr'] is None and repo_info['count'] > 0:
-        print "Using NEXT defined as: " + nvn
-        print "(Pre-release metadata: none)"
+        term.prn("Using NEXT defined as: " + nvn)
+        term.prn("(Pre-release metadata: none)")
     elif repo_info['pr'] is not None:
-        print "(NEXT defined as: " + nvn + ")"
-        print "Using pre-release metadata: " + color_tag(str(repo_info['pr']))
+        term.prn("(NEXT defined as: " + nvn + ")")
+        term.prn("Using pre-release metadata: " +
+                 term.tag(str(repo_info['pr'])))
 
-    print "Current build ID: " + color_tag(repo_info['full-build-id'])
+    term.prn("Current build ID: " + term.tag(repo_info['full-build-id']))
 
     promoted = build_version_string(repo_info, True, next_custom)
-    print "Current version: " + \
-          color_version("v" +
-                        build_version_string(repo_info, False, next_custom)) + \
-          (" => " + color_promoted("v" + promoted) if len(promoted) > 0 else '')
+    term.prn(
+        "Current version: " +
+        term.ver("v" +
+                      build_version_string(repo_info, False, next_custom)) +
+        (" => " + term.prom("v" + promoted) if len(promoted) > 0 else '')
+    )
 
 
 def cmd_list_templates(args):
     tpls = [f for f in os.listdir(TPLDIR) if os.path.isfile(template_path(f))]
     if len(tpls) > 0:
-        print "Available templates:"
+        term.prn("Available templates:")
         for t in tpls:
-            print "    " + bold(t) + " (" + template_path(t) + ")"
+            term.prn("    " + bold(t) + " (" + template_path(t) + ")")
     else:
-        print "No templates available in " + TPLDIR
+        term.prn("No templates available in " + TPLDIR)
 
 
 def cmd_build_template(args):
@@ -264,14 +267,14 @@ def cmd_next(args):
     vn = args.next_version_numbers
     user = user_numbers_from_string(vn)
     if not user:
-        print err("Please specify valid version numbers.\nThe expected "
-                  "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1")
+        term.err("Please specify valid version numbers.\nThe expected "
+                 "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1")
         sys.exit(1)
 
     custom = "%d.%d.%d" % (int(user[0]), int(user[1]), int(user[2]))
     next_store.set(last_tag, custom).save()
-    print "Set NEXT version string to " + color_next(custom) + \
-          " for the current tag " + color_tag(last_tag)
+    term.prn("Set NEXT version string to " + term.next(custom) +
+             " for the current tag " + term.tag(last_tag))
 
 
 def cmd_clean(args):
@@ -287,18 +290,18 @@ def cmd_clean(args):
 
     if has_custom:
         next_store.rm(tag).save()
-        print "Cleaned up custom string version \"" + next_custom + \
-              "\" for tag \"" + tag + "\""
+        term.prn("Cleaned up custom string version \"" + next_custom +
+                 "\" for tag \"" + tag + "\"")
     else:
-        print "No custom string version found for tag \"" + tag + "\""
+        term.prn("No custom string version found for tag \"" + tag + "\"")
 
 
 def cmd_cleanall(args):
     if os.path.exists(NEXT_STORE_FILE):
         os.unlink(NEXT_STORE_FILE)
-        print "Custom strings removed."
+        term.prn("Custom strings removed.")
     else:
-        print "No NEXT custom strings found."
+        term.prn("No NEXT custom strings found.")
 
 
 def cmd_list_next(args):
@@ -308,11 +311,11 @@ def cmd_list_next(args):
     has_next_custom = next_store.has(last_tag)
     if not next_store.empty():
         def print_item(k, v):
-            print "    %s => %s" % (color_tag(k), color_next(v)) +\
-                  (' (*)' if k == last_tag else '')
+            term.prn("    %s => %s" % (term.tag(k), term.next(v)) +
+                     (' (*)' if k == last_tag else ''))
 
-        print "Currently set NEXT custom strings (*=most recent " \
-              "and reachable tag):"
+        term.prn("Currently set NEXT custom strings (*=most recent and "
+                 "reachable tag):")
         for tag, vstring in sorted(next_store.items()):
             print_item(tag, vstring)
 
@@ -320,4 +323,4 @@ def cmd_list_next(args):
             print_item(last_tag, '<undefined>')
 
     else:
-        print "No NEXT custom strings set."
+        term.prn("No NEXT custom strings set.")

@@ -20,21 +20,23 @@ def setup_env():
 
 setup_env()
 
-# check for the git command
-from gitver.termcolors import warn, err
-from gitver.git import git_version
-v = git_version()
-if not 'git version' in v:
-    print err("This program requires \"git\" to be installed and configured.")
-    sys.exit(1)
-
-from gitver.sanity import check_config, check_gitignore, check_project_root
-from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
-    cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
-    cmd_version, cmd_current
-
 
 def main():
+    from gitver.termcolors import term
+
+    # check for the git command
+    from gitver.git import git_version
+    v = git_version()
+    if not 'git version' in v:
+        term.err("This program requires \"git\" to be installed and "
+                 "configured.")
+        sys.exit(1)
+
+    # requires the git command
+    from gitver.sanity import check_config, check_gitignore, check_project_root
+
+    from gitver.commands import cmd_clean, cmd_cleanall, cmd_next, cmd_version
+
     # always permit the "version" command to run
     if len(sys.argv) == 2 and sys.argv[1] == 'version':
         cmd_version(None)
@@ -42,17 +44,29 @@ def main():
 
     check_project_root()
     inject_default_action()
-    args = parse_args()
+    parser = create_parser()
+    args = parser.parse_args()
 
-# avoid check if 'init' command
+    # avoid check if 'init' command
     if not 'init' in sys.argv:
         check_config()
         exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
         if not args.ignore_gitignore:
             check_gitignore(exit_on_error)
         else:
-            print warn("(ignoring .gitignore warning)")
+            term.warn("(ignoring .gitignore warning)")
 
+    # apply colors configuration
+    from gitver.config import cfg
+    term.enable_colors(cfg['use_terminal_colors'])
+
+    # apply colors from command line
+    if args.use_colors == 'yes':
+        term.enable_colors(True)
+    elif args.use_colors == 'no':
+        term.enable_colors(False)
+
+    # apply any
     return args.func(args)
 
 
@@ -65,7 +79,7 @@ def inject_default_action():
         sys.argv.append('info')
 
 
-def parse_args():
+def create_parser():
     parser = argparse.ArgumentParser()
 
     # ignore gitver-generated warnings (not recommended!)
@@ -77,7 +91,34 @@ def parse_args():
                         default=False,
                         action='store_true')
 
+    parser.add_argument('--colors',
+                        help='Enable or disable colorized terminal output: '
+                             '\'config\' (default) reads the setting from '
+                             'your configuration file, \'yes\' will '
+                             'force-enable it, \'no\' will force-disable it.',
+                        dest='use_colors',
+                        type=str,
+                        choices=['config', 'yes', 'no'],
+                        default='config')
+
+    # parser.add_argument('--no-colors',
+    #                     help='Disable colorized terminal output: you '
+    #                          'can also enable or disable this in your '
+    #                          'configuration file for the setting to be '
+    #                          'persistent.',
+    #                     dest='use_colors',
+    #                     default=False,
+    #                     action='store_false')
+
     sp = parser.add_subparsers(title='Valid commands')
+    create_commands(sp)
+    return parser
+
+
+def create_commands(sp):
+    from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
+        cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
+        cmd_version, cmd_current
 
     add_command(sp, 'version', "Show gitver version", cmd_version)
     add_command(sp, 'init', "Create gitver's configuration directory", cmd_init)
@@ -113,7 +154,6 @@ def parse_args():
 
     add_command(sp, 'cleanall', "Resets all the NEXT custom strings for this"
                                 "repository.", cmd_cleanall)
-    return parser.parse_args()
 
 
 def add_command(parent, name, desc, func):

@@ -7,21 +7,21 @@ Implements reused sanity checks
 
 import os
 import sys
-from gitver.termcolors import err, warn, bold
+from gitver.termcolors import term, bold
 from gitver.defines import PRJ_ROOT, CFGDIR, CFGDIRNAME, GITIGNOREFILE
 
 
 def check_project_root():
     if len(PRJ_ROOT) == 0:
-        print err("Couldn't determine your project's root directory, is this "
-                  "a valid git repository?")
+        term.err("Couldn't determine your project's root directory, is this "
+                 "a valid git repository?")
         sys.exit(1)
 
 
 def check_config():
     # check config directory exists
     if not os.path.exists(CFGDIR):
-        print "Please run " + bold("gitver init") + " first."
+        term.prn("Please run " + bold("gitver init") + " first.")
         sys.exit(1)
 
 
@@ -35,10 +35,10 @@ def check_gitignore(exit_on_error=True):
     except IOError:
         pass
 
-    print warn("Warning: it's highly recommended to EXCLUDE the gitver "
-               "configuration from the repository!")
-    print "Please include the following line in your .gitignore file:"
-    print "    " + CFGDIRNAME
+    term.warn("Warning: it's highly recommended to EXCLUDE the gitver "
+              "configuration from the repository!")
+    term.prn("Please include the following line in your .gitignore file:")
+    term.prn("    " + CFGDIRNAME)
 
     if exit_on_error:
         sys.exit(1)

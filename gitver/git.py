@@ -7,15 +7,15 @@ git support library
 
 import sys
 import re
-from gitver.termcolors import err
+from gitver.termcolors import term
 
 # check for the sh package
 try:
     import sh
     from sh import ErrorReturnCode, CommandNotFound
 except ImportError:
-    print "A dependency is missing, please install the \"sh\" package and " \
-          "run gitver again."
+    term.err("A dependency is missing, please install the \"sh\" package and "
+             "run gitver again.")
     sys.exit(1)
 
 hash_matcher = r".*-g([a-fA-F0-9]+)"
@@ -96,30 +96,32 @@ def get_repo_info():
     # retrieve basic repository information
     desc_hash = describe_hash()
     if desc_hash is None or not desc_hash:
-        print err("Error, couldn't describe current hash")
+        term.err("Error, couldn't describe current hash, please check the"
+                 " presence of at least one proper tag (vX.Y.Z or "
+                 "vX.Y.Z[-RELEASE.METADATA]).")
         sys.exit(1)
 
     hashlen = len(desc_hash)
     full_build_id = get_build_id()
     if not full_build_id or hashlen == 0:
-        print err("Couldn't retrieve build id information")
+        term.err("Couldn't retrieve build id information")
         sys.exit(1)
 
     # sanity check
     if not full_build_id.startswith(desc_hash):
-        print err("Hash problem detected: git-describe reports " + desc_hash +
-                  ", but HEAD id is " + full_build_id)
+        term.err("Hash problem detected: git-describe reports " + desc_hash +
+                 ", but HEAD id is " + full_build_id)
         sys.exit(1)
 
     tag = last_tag()
     if not tag:
-        print err("Couldn't retrieve the latest tag")
+        term.err("Couldn't retrieve the latest tag")
         sys.exit(1)
 
     data = data_from_tag(tag)
     if data is None:
-        print err("Couldn't retrieve version information from tag \"" + tag +
-                  "\"")
+        term.err("Couldn't retrieve version information from tag \"" + tag +
+                 "\"")
         sys.exit(1)
 
     vmaj = int(data[0])
