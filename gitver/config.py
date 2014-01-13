@@ -20,7 +20,7 @@ default_config_text = """{
 
     # by default, terminal output is colorized: you may disable this if you
     # experience problems
-    "use_terminal_colors": true,
+    "use_terminal_colors": false,
 
     # default pre-release metadata when commit count > 0 AND
     # no NEXT has been defined
