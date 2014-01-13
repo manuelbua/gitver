@@ -4,6 +4,10 @@
     # These defaults implements Semantic Versioning as described in the latest
     # available documentation at http://semver.org/spec/v2.0.0.html
 
+    # by default, terminal output is colorized: you may disable this if you
+    # experience problems
+    "use_terminal_colors": true,
+
     # default pre-release metadata when commit count > 0 AND
     # no NEXT has been defined
     "default_meta_pr_in_next_no_next": "NEXT",
