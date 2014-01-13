@@ -58,15 +58,18 @@ except ImportError:
 class Terminal(object):
     def __init__(self):
         self.__use_colors = False
+        self.is_quiet = False
+        self.is_quiet_err = False
 
     def enable_colors(self, use_colors):
         self.__use_colors = use_colors
 
-    def are_colors_enabled(self):
-        return self.__use_colors
+    def set_quiet_flags(self, quiet_stdout, quiet_stderr):
+        self.is_quiet = quiet_stdout
+        self.is_quiet_err = quiet_stderr
 
-    def __emit(self, text, stream, func):
-        if self.__use_colors:
+    def __emit(self, text, stream, func=None):
+        if self.__use_colors and func is not None:
             stream.write(func(text + os.linesep))
         else:
             stream.write(text + os.linesep)
@@ -78,13 +81,16 @@ class Terminal(object):
             return text
 
     def err(self, text):
-        self.__emit(text, sys.stderr, color_err)
+        if not self.is_quiet_err:
+            self.__emit("ERROR: " + text, sys.stderr, color_err)
 
     def warn(self, text):
-        self.__emit(text, sys.stderr, color_warn)
+        if not self.is_quiet_err:
+            self.__emit("WARNING: " + text, sys.stderr, color_warn)
 
     def prn(self, text):
-        sys.stdout.write(text + os.linesep)
+        if not self.is_quiet:
+            self.__emit(text, sys.stdout)
 
     def tag(self, text):
         return self.__decorate(text, color_tag)

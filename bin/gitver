@@ -47,6 +47,9 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
+    # apply quiet flags
+    term.set_quiet_flags(args.quiet_stdout, args.quiet_stderr)
+
     # avoid check if 'init' command
     if not 'init' in sys.argv:
         check_config()
@@ -101,6 +104,17 @@ def create_parser():
                         choices=['config', 'yes', 'no'],
                         default='config')
 
+    parser.add_argument('--quiet',
+                        help='Disable any stdout message.',
+                        dest='quiet_stdout',
+                        default=False,
+                        action='store_true')
+
+    parser.add_argument('--quiet-errors',
+                        help='Disable any stderr message.',
+                        dest='quiet_stderr',
+                        default=False,
+                        action='store_true')
 
     sp = parser.add_subparsers(title='Valid commands')
     create_commands(sp)
