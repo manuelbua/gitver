@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "`whoami`" == "root" ]; then
+    echo "Do not run this script with root privileges, your credentials will be asked     when needed."
+    exit
+fi
+
 # remove additional debug version information at this point
 sudo rm -rf build dist &> /dev/null
 sudo find . -name \*.pyc -delete
