@@ -50,23 +50,23 @@ def main():
     # avoid check if 'init' command
     if not 'init' in sys.argv:
         check_config()
+
+        # apply colors configuration
+        from gitver.config import cfg
+        term.enable_colors(cfg['use_terminal_colors'])
+
+        # apply colors from command line
+        if args.use_colors == 'yes':
+            term.enable_colors(True)
+        elif args.use_colors == 'no':
+            term.enable_colors(False)
+
         exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
         if not args.ignore_gitignore:
             check_gitignore(exit_on_error)
         else:
             term.warn("(ignoring .gitignore warning)")
 
-    # apply colors configuration
-    from gitver.config import cfg
-    term.enable_colors(cfg['use_terminal_colors'])
-
-    # apply colors from command line
-    if args.use_colors == 'yes':
-        term.enable_colors(True)
-    elif args.use_colors == 'no':
-        term.enable_colors(False)
-
-    # apply any
     return args.func(args)
 
 
@@ -101,14 +101,6 @@ def create_parser():
                         choices=['config', 'yes', 'no'],
                         default='config')
 
-    # parser.add_argument('--no-colors',
-    #                     help='Disable colorized terminal output: you '
-    #                          'can also enable or disable this in your '
-    #                          'configuration file for the setting to be '
-    #                          'persistent.',
-    #                     dest='use_colors',
-    #                     default=False,
-    #                     action='store_false')
 
     sp = parser.add_subparsers(title='Valid commands')
     create_commands(sp)
