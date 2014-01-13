@@ -1,6 +1,7 @@
 .idea
 VERSION
-.gitver
+.gitver/*
+!.gitver/config
 *.pyc
 
 # exclude version information
