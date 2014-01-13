@@ -50,7 +50,6 @@ def parse_templates(templates, repo, next_custom):
             # resolve relative paths to the project's root
             if not os.path.isabs(output):
                 output = os.path.join(PRJ_ROOT, output)
-            print output
 
             outdir = os.path.dirname(output)
 
