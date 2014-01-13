@@ -6,7 +6,7 @@
 
     # by default, terminal output is NOT colorized for compatibility with older
     # terminal emulators: you may enable this if you like a more modern look
-    "use_terminal_colors": false,
+    "use_terminal_colors": true,
 
     # default pre-release metadata when commit count > 0 AND
     # no NEXT has been defined
