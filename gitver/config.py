@@ -15,11 +15,11 @@ from termcolors import term
 default_config_text = """{
     # automatically generated configuration file
     #
-    # These defaults implements Semantic Versioning as described in the latest
+    # These defaults implement Semantic Versioning as described in the latest
     # available documentation at http://semver.org/spec/v2.0.0.html
 
-    # by default, terminal output is colorized: you may disable this if you
-    # experience problems
+    # by default, terminal output is NOT colorized for compatibility with older
+    # terminal emulators: you may enable this if you like a more modern look
     "use_terminal_colors": false,
 
     # default pre-release metadata when commit count > 0 AND
