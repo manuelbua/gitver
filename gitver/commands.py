@@ -186,8 +186,6 @@ def cmd_init(args):
         os.makedirs(TPLDIR)
         term.prn("Created " + TPLDIR)
 
-    check_gitignore()
-
     if i > 0:
         term.prn("Done.")
     else:

@@ -22,6 +22,10 @@ default_config_text = """{
     # terminal emulators: you may enable this if you like a more modern look
     "use_terminal_colors": false,
 
+    # prevent gitver from storing any information in its configuration directory
+    # if the .gitignore file doesn't exclude it from the repository
+    "safe_mode": true,
+
     # default pre-release metadata when commit count > 0 AND
     # no NEXT has been defined
     "default_meta_pr_in_next_no_next": "NEXT",

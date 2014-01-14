@@ -64,11 +64,17 @@ def main():
         elif args.use_colors == 'no':
             term.enable_colors(False)
 
-        exit_on_error = args.func in [cmd_next, cmd_clean, cmd_cleanall]
-        if not args.ignore_gitignore:
-            check_gitignore(exit_on_error)
-        else:
-            term.warn("(ignoring .gitignore warning)")
+        if cfg['safe_mode'] and not args.ignore_gitignore:
+            if args.func in [cmd_next, cmd_clean, cmd_cleanall]:
+                if not check_gitignore():
+                    term.warn("A potentially unsafe operation has been "
+                              "prevented to\ncontinue because your .gitignore "
+                              "file doesn't exclude gitver's\nconfiguration "
+                              "directory from the repository.\nIf you know what"
+                              " you are doing, use the \"--ignore-gitignore\"\n"
+                              "flag to ignore this warning or just disable "
+                              "\"safe_mode\" in\nyour configuration file.")
+                    sys.exit(1)
 
     return args.func(args)
 

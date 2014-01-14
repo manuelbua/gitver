@@ -25,22 +25,14 @@ def check_config():
         sys.exit(1)
 
 
-def check_gitignore(exit_on_error=True):
-    # check .gitignore for .gitver inclusion
+def check_gitignore():
+    # checks .gitignore for .gitver inclusion
     try:
         gifile = os.path.join(GITIGNOREFILE)
         with open(gifile, 'r') as f:
             if CFGDIRNAME in f.read():
-                term.prn("Your .gitignore file looks fine.")
-                return
+                return True
     except IOError:
         pass
 
-    term.warn("It's highly recommended to EXCLUDE the gitver\n"
-              "configuration directory from the repository, unless you know\n"
-              "what you are doing. If you are not sure, please "
-              "include the\nfollowing line in your .gitignore file:\n\n    " +
-              CFGDIRNAME + "\n")
-
-    if exit_on_error:
-        sys.exit(1)
+    return False
