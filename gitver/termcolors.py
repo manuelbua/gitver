@@ -56,6 +56,10 @@ except ImportError:
 
 
 class Terminal(object):
+    """
+    Provides a way to output text to the stdout or stderr, optionally
+    with colors.
+    """
     def __init__(self):
         self.__use_colors = False
         self.is_quiet = False
@@ -81,27 +85,55 @@ class Terminal(object):
             return text
 
     def err(self, text):
+        """
+        Outputs an ERROR message to the stderr
+        """
         if not self.is_quiet_err:
             self.__emit("ERROR: " + text, sys.stderr, color_err)
 
     def warn(self, text):
+        """
+        Outputs a WARNING message to the stderr
+        """
         if not self.is_quiet_err:
             self.__emit("WARNING: " + text, sys.stderr, color_warn)
 
-    def prn(self, text):
+    def info(self, text):
+        """
+        Outputs an INFORMATIVE message to the stderr
+        """
+        if not self.is_quiet_err:
+            self.__emit(text, sys.stderr, None)
+
+    def out(self, text):
+        """
+        Outputs a message to the stdout
+        """
         if not self.is_quiet:
             self.__emit(text, sys.stdout)
 
     def tag(self, text):
+        """
+        Decorate the specified text with the TAG color class
+        """
         return self.__decorate(text, color_tag)
 
     def next(self, text):
+        """
+        Decorate the specified text with the NEXT color class
+        """
         return self.__decorate(text, color_next)
 
     def ver(self, text):
+        """
+        Decorate the specified text with the VERSION color class
+        """
         return self.__decorate(text, color_version)
 
     def prom(self, text):
+        """
+        Decorate the specified text with the PROMOTED color class
+        """
         return self.__decorate(text, color_promoted)
 
 term = Terminal()

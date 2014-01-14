@@ -33,7 +33,7 @@ def template_path(name):
     return os.path.join(TPLDIR, name)
 
 
-def parse_templates(cfg, templates, repo, next_custom):
+def parse_templates(cfg, templates, repo, next_custom, preview):
     for t in templates.split(' '):
         tpath = template_path(t)
         if os.path.exists(tpath):
@@ -61,8 +61,8 @@ def parse_templates(cfg, templates, repo, next_custom):
                 term.err("The template output directory \"" + outdir +
                          "\" doesn't exists.")
 
-            term.prn("Processing template \"" + bold(t) + "\" for " + output +
-                     "...")
+            term.info("Processing template \"" + bold(t) + "\" for " + output +
+                      "...")
 
             lines = lines[1:]
             xformed = Template("".join(lines))
@@ -90,18 +90,22 @@ def parse_templates(cfg, templates, repo, next_custom):
                 term.err("Unknown key \"" + e.message + "\" found, aborting.")
                 sys.exit(1)
 
-            try:
-                fp = open(output, 'w')
-                fp.write(res)
-                fp.close()
-            except IOError:
-                term.err("Couldn't write file \"" + output + "\"")
-                sys.exit(1)
+            if not preview:
+                try:
+                    fp = open(output, 'w')
+                    fp.write(res)
+                    fp.close()
+                except IOError:
+                    term.err("Couldn't write file \"" + output + "\"")
+                    sys.exit(1)
+            else:
+                term.out(res)
 
-            stat = os.stat(output)
-            term.prn("Done, " + str(stat.st_size) + " bytes written.")
+            wrote_bytes = len(res) if preview else os.stat(output).st_size
+            term.info("Done, " + str(wrote_bytes) + " bytes written.")
         else:
             term.err("Couldn't find the \"" + t + "\" template")
+            sys.exit(1)
 
 
 def user_numbers_from_string(user):
@@ -176,10 +180,10 @@ def build_version_string(cfg, repo, promote=False, next_custom=None):
 def cmd_version(cfg, args):
     v = ('v' + gitver_version) if gitver_version is not None else 'n/a'
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
-    term.prn("This is gitver " + bold(v))
-    term.prn("Full build ID is " + bold(b))
+    term.out("This is gitver " + bold(v))
+    term.out("Full build ID is " + bold(b))
     from gitver import __license__
-    term.prn(__license__)
+    term.out(__license__)
 
 
 def cmd_init(cfg, args):
@@ -198,7 +202,7 @@ def cmd_init(cfg, args):
     wrote_cfg = create_default_configuration_file()
 
     if wrote_cfg:
-        term.prn("gitver has been initialized and configured.")
+        term.out("gitver has been initialized and configured.")
     else:
         term.warn("gitver couldn't create the default configuration file, "
                   "does it already exist?")
@@ -210,7 +214,7 @@ def cmd_current(cfg, args):
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    term.prn(build_version_string(cfg, repo_info, False, next_custom))
+    term.out(build_version_string(cfg, repo_info, False, next_custom))
 
 
 def cmd_info(cfg, args):
@@ -228,20 +232,20 @@ def cmd_info(cfg, args):
               term.next("-" + cfg['default_meta_pr_in_next_no_next']) + \
               " suffix"
 
-    term.prn("Most recent tag: " + term.tag(last_tag))
+    term.out("Most recent tag: " + term.tag(last_tag))
 
     if repo_info['pr'] is None and repo_info['count'] > 0:
-        term.prn("Using NEXT defined as: " + nvn)
-        term.prn("(Pre-release metadata: none)")
+        term.out("Using NEXT defined as: " + nvn)
+        term.out("(Pre-release metadata: none)")
     elif repo_info['pr'] is not None:
-        term.prn("(NEXT defined as: " + nvn + ")")
-        term.prn("Using pre-release metadata: " +
+        term.out("(NEXT defined as: " + nvn + ")")
+        term.out("Using pre-release metadata: " +
                  term.tag(str(repo_info['pr'])))
 
-    term.prn("Current build ID: " + term.tag(repo_info['full-build-id']))
+    term.out("Current build ID: " + term.tag(repo_info['full-build-id']))
 
     promoted = build_version_string(cfg, repo_info, True, next_custom)
-    term.prn(
+    term.out(
         "Current version: " +
         term.ver("v" + build_version_string(
             cfg, repo_info, False, next_custom)) +
@@ -252,20 +256,28 @@ def cmd_info(cfg, args):
 def cmd_list_templates(cfg, args):
     tpls = [f for f in os.listdir(TPLDIR) if os.path.isfile(template_path(f))]
     if len(tpls) > 0:
-        term.prn("Available templates:")
+        term.out("Available templates:")
         for t in tpls:
-            term.prn("    " + bold(t) + " (" + template_path(t) + ")")
+            term.out("    " + bold(t) + " (" + template_path(t) + ")")
     else:
-        term.prn("No templates available in " + TPLDIR)
+        term.out("No templates available in " + TPLDIR)
 
 
-def cmd_build_template(cfg, args):
+def __cmd_build_template(cfg, args, preview=False):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    parse_templates(cfg, args.templates, repo_info, next_custom)
+    parse_templates(cfg, args.templates, repo_info, next_custom, preview)
+
+
+def cmd_build_template(cfg, args):
+    __cmd_build_template(cfg, args)
+
+
+def cmd_preview_template(cfg, args):
+    __cmd_build_template(cfg, args, True)
 
 
 def cmd_next(cfg, args):
@@ -283,7 +295,7 @@ def cmd_next(cfg, args):
 
     custom = "%d.%d.%d" % (int(user[0]), int(user[1]), int(user[2]))
     next_store.set(last_tag, custom).save()
-    term.prn("Set NEXT version string to " + term.next(custom) +
+    term.out("Set NEXT version string to " + term.next(custom) +
              " for the current tag " + term.tag(last_tag))
 
 
@@ -300,18 +312,18 @@ def cmd_clean(cfg, args):
 
     if has_custom:
         next_store.rm(tag).save()
-        term.prn("Cleaned up custom string version \"" + next_custom +
+        term.out("Cleaned up custom string version \"" + next_custom +
                  "\" for tag \"" + tag + "\"")
     else:
-        term.prn("No custom string version found for tag \"" + tag + "\"")
+        term.out("No custom string version found for tag \"" + tag + "\"")
 
 
 def cmd_cleanall(cfg, args):
     if os.path.exists(NEXT_STORE_FILE):
         os.unlink(NEXT_STORE_FILE)
-        term.prn("All previously set custom strings have been removed.")
+        term.out("All previously set custom strings have been removed.")
     else:
-        term.prn("No NEXT custom strings found.")
+        term.out("No NEXT custom strings found.")
 
 
 def cmd_list_next(cfg, args):
@@ -321,10 +333,10 @@ def cmd_list_next(cfg, args):
     has_next_custom = next_store.has(last_tag)
     if not next_store.empty():
         def print_item(k, v):
-            term.prn("    %s => %s" % (term.tag(k), term.next(v)) +
+            term.out("    %s => %s" % (term.tag(k), term.next(v)) +
                      (' (*)' if k == last_tag else ''))
 
-        term.prn("Currently set NEXT custom strings (*=most recent and "
+        term.out("Currently set NEXT custom strings (*=most recent and "
                  "reachable tag):")
         for tag, vstring in sorted(next_store.items()):
             print_item(tag, vstring)
@@ -333,14 +345,14 @@ def cmd_list_next(cfg, args):
             print_item(last_tag, '<undefined>')
 
     else:
-        term.prn("No NEXT custom strings set.")
+        term.out("No NEXT custom strings set.")
 
 
 def cmd_check_gitignore(cfg, args):
     if check_gitignore():
-        term.prn("Your .gitignore file looks fine.")
+        term.out("Your .gitignore file looks fine.")
     else:
-        term.prn("Your .gitignore file doesn't define any rule for the " +
+        term.out("Your .gitignore file doesn't define any rule for the " +
                  CFGDIRNAME + "\nconfiguration directory: it's recommended to "
                  "exclude it from\nthe repository, unless you know what you "
                  "are doing. If you are not\nsure, add this line to your "

@@ -135,7 +135,7 @@ def create_parser():
 def create_commands(sp):
     from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
         cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
-        cmd_version, cmd_current, cmd_check_gitignore
+        cmd_version, cmd_current, cmd_check_gitignore, cmd_preview_template
 
     add_command(sp, 'version', "Show gitver version", cmd_version)
     add_command(sp, 'init', "Create gitver's configuration directory and "
@@ -163,6 +163,12 @@ def create_commands(sp):
                                   "template. This is usually performed "
                                   "*AFTER* a release has been tagged already.",
                     cmd_build_template)
+    p.add_argument('templates', default='', type=str)
+
+    p = add_command(sp, 'preview', "Same as \"update\", but the output is "
+                                   "written to the stdout instead (same rules "
+                                   "apply).",
+                    cmd_preview_template)
     p.add_argument('templates', default='', type=str)
 
     p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
