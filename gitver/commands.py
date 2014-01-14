@@ -96,6 +96,7 @@ def parse_templates(cfg, templates, repo, next_custom):
                 fp.close()
             except IOError:
                 term.err("Couldn't write file \"" + output + "\"")
+                sys.exit(1)
 
             stat = os.stat(output)
             term.prn("Done, " + str(stat.st_size) + " bytes written.")
