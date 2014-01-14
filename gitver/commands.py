@@ -14,7 +14,7 @@ from termcolors import term, bold
 from git import get_repo_info
 from gitver.storage import KVStore
 from sanity import check_gitignore
-from defines import CFGDIR, PRJ_ROOT
+from defines import CFGDIR, PRJ_ROOT, CFGDIRNAME
 from config import cfg
 from version import gitver_version, gitver_buildid
 
@@ -322,3 +322,14 @@ def cmd_list_next(args):
 
     else:
         term.prn("No NEXT custom strings set.")
+
+
+def cmd_check_gitignore(args):
+    if check_gitignore():
+        term.prn("Your .gitignore file looks fine.")
+    else:
+        term.prn("Your .gitignore file doesn't define any rule for the "
+                 ".gitver\nconfiguration directory: it's recommended to "
+                 "exclude it from\nthe repository, unless you know what you "
+                 "are doing. If you are not\nsure, add this line to your "
+                 ".gitignore file:\n\n    " + CFGDIRNAME + "\n")

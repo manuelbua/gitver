@@ -130,10 +130,13 @@ def create_parser():
 def create_commands(sp):
     from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
         cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
-        cmd_version, cmd_current
+        cmd_version, cmd_current, cmd_check_gitignore
 
     add_command(sp, 'version', "Show gitver version", cmd_version)
     add_command(sp, 'init', "Create gitver's configuration directory", cmd_init)
+    add_command(sp, 'check', "Check your .gitignore file for gitver's "
+                             "configuration directory inclusion.",
+                cmd_check_gitignore)
 
     add_command(sp, 'info', "Print full version information and tag-based "
                             "metadata for this repository [default]",
