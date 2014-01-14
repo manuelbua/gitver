@@ -31,17 +31,16 @@ def check_gitignore(exit_on_error=True):
         gifile = os.path.join(GITIGNOREFILE)
         with open(gifile, 'r') as f:
             if CFGDIRNAME in f.read():
+                term.prn("Your .gitignore file looks fine.")
                 return
     except IOError:
         pass
 
-    term.warn("Warning: it's highly recommended to EXCLUDE the gitver\n"
-              "configuration from the repository.")
-    term.prn("Templates and configuration file can be safely tracked by git,\n"
-             "but you need to make sure you understand what you are doing.\n")
-    term.prn("If you are not sure, please include the following line in\n"
-             "your .gitignore file:")
-    term.prn("    " + CFGDIRNAME + "\n")
+    term.warn("It's highly recommended to EXCLUDE the gitver\n"
+              "configuration directory from the repository, unless you know\n"
+              "what you are doing. If you are not sure, please "
+              "include the\nfollowing line in your .gitignore file:\n\n    " +
+              CFGDIRNAME + "\n")
 
     if exit_on_error:
         sys.exit(1)
