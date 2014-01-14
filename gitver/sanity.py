@@ -12,6 +12,7 @@ from gitver.defines import PRJ_ROOT, CFGDIR, CFGDIRNAME, GITIGNOREFILE
 
 
 def check_project_root():
+    # tries to determine the project's root directory
     if len(PRJ_ROOT) == 0:
         term.err("Couldn't determine your project's root directory, is this "
                  "a valid git repository?")
@@ -19,7 +20,7 @@ def check_project_root():
 
 
 def check_config():
-    # check config directory exists
+    # checks if configuration directory exists
     if not os.path.exists(CFGDIR):
         term.err("Please run " + bold("gitver init") + " first.")
         sys.exit(1)

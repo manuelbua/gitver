@@ -297,7 +297,7 @@ def cmd_clean(args):
 def cmd_cleanall(args):
     if os.path.exists(NEXT_STORE_FILE):
         os.unlink(NEXT_STORE_FILE)
-        term.prn("Custom strings removed.")
+        term.prn("All previously set custom strings have been removed.")
     else:
         term.prn("No NEXT custom strings found.")
 
