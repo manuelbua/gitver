@@ -19,7 +19,7 @@ def check_project_root():
         sys.exit(1)
 
 
-def check_config():
+def check_config_dir():
     # checks if configuration directory exists
     if not os.path.exists(CFGDIR):
         term.err("Please run " + bold("gitver init") + " first.")

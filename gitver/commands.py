@@ -15,8 +15,8 @@ from git import get_repo_info
 from gitver.storage import KVStore
 from sanity import check_gitignore
 from defines import CFGDIR, PRJ_ROOT, CFGDIRNAME
-from config import cfg
 from version import gitver_version, gitver_buildid
+
 
 # file where to store NEXT strings <=> TAG user-defined mappings
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
@@ -25,11 +25,15 @@ TPLDIR = os.path.join(CFGDIR, 'templates')
 user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 
 
+#
+# helpers
+#
+
 def template_path(name):
     return os.path.join(TPLDIR, name)
 
 
-def parse_templates(templates, repo, next_custom):
+def parse_templates(cfg, templates, repo, next_custom):
     for t in templates.split(' '):
         tpath = template_path(t)
         if os.path.exists(tpath):
@@ -62,8 +66,8 @@ def parse_templates(templates, repo, next_custom):
 
             lines = lines[1:]
             xformed = Template("".join(lines))
-            vstring = build_version_string(repo, False, next_custom)
-            args = build_format_args(repo, next_custom)
+            vstring = build_version_string(cfg, repo, False, next_custom)
+            args = build_format_args(cfg, repo, next_custom)
             keywords = {
                 'CURRENT_VERSION': vstring,
                 'MAJOR': args['maj'],
@@ -109,7 +113,7 @@ def user_numbers_from_string(user):
     return data
 
 
-def build_format_args(repo_info, next_custom=None):
+def build_format_args(cfg, repo_info, next_custom=None):
     in_next = repo_info['count'] > 0
     has_next_custom = not next_custom is None and len(next_custom) > 0
 
@@ -148,7 +152,7 @@ def build_format_args(repo_info, next_custom=None):
     return args
 
 
-def build_version_string(repo, promote=False, next_custom=None):
+def build_version_string(cfg, repo, promote=False, next_custom=None):
     in_next = repo['count'] > 0
     has_next_custom = not next_custom is None and len(next_custom) > 0
 
@@ -161,10 +165,14 @@ def build_version_string(repo, promote=False, next_custom=None):
             return ''
 
     fmt = cfg['format'] if not in_next else cfg['format_next']
-    return fmt % build_format_args(repo, next_custom)
+    return fmt % build_format_args(cfg, repo, next_custom)
 
 
-def cmd_version(args):
+#
+# commands
+#
+
+def cmd_version(cfg, args):
     v = ('v' + gitver_version) if gitver_version is not None else 'n/a'
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
     term.prn("This is gitver " + bold(v))
@@ -173,35 +181,38 @@ def cmd_version(args):
     term.prn(__license__)
 
 
-def cmd_init(args):
+def cmd_init(cfg, args):
+    from config import create_default_configuration_file
     i = 0
 
     if not os.path.exists(CFGDIR):
         i += 1
         os.makedirs(CFGDIR)
-        term.prn("Created " + CFGDIR)
 
     if not os.path.exists(TPLDIR):
         i += 1
         os.makedirs(TPLDIR)
-        term.prn("Created " + TPLDIR)
 
-    if i > 0:
-        term.prn("Done.")
+    # try create the default configuration file
+    wrote_cfg = create_default_configuration_file()
+
+    if wrote_cfg:
+        term.prn("gitver has been initialized and configured.")
     else:
-        term.prn("Nothing to do.")
+        term.warn("gitver couldn't create the default configuration file, "
+                  "does it already exist?")
 
 
-def cmd_current(args):
+def cmd_current(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    term.prn(build_version_string(repo_info, False, next_custom))
+    term.prn(build_version_string(cfg, repo_info, False, next_custom))
 
 
-def cmd_info(args):
+def cmd_info(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -228,16 +239,16 @@ def cmd_info(args):
 
     term.prn("Current build ID: " + term.tag(repo_info['full-build-id']))
 
-    promoted = build_version_string(repo_info, True, next_custom)
+    promoted = build_version_string(cfg, repo_info, True, next_custom)
     term.prn(
         "Current version: " +
-        term.ver("v" +
-                      build_version_string(repo_info, False, next_custom)) +
+        term.ver("v" + build_version_string(
+            cfg, repo_info, False, next_custom)) +
         (" => " + term.prom("v" + promoted) if len(promoted) > 0 else '')
     )
 
 
-def cmd_list_templates(args):
+def cmd_list_templates(cfg, args):
     tpls = [f for f in os.listdir(TPLDIR) if os.path.isfile(template_path(f))]
     if len(tpls) > 0:
         term.prn("Available templates:")
@@ -247,16 +258,16 @@ def cmd_list_templates(args):
         term.prn("No templates available in " + TPLDIR)
 
 
-def cmd_build_template(args):
+def cmd_build_template(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
     has_next_custom = next_store.has(last_tag)
     next_custom = next_store.get(last_tag) if has_next_custom else None
-    parse_templates(args.templates, repo_info, next_custom)
+    parse_templates(cfg, args.templates, repo_info, next_custom)
 
 
-def cmd_next(args):
+def cmd_next(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
 
@@ -275,7 +286,7 @@ def cmd_next(args):
              " for the current tag " + term.tag(last_tag))
 
 
-def cmd_clean(args):
+def cmd_clean(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     if len(args.tag) > 0:
         tag = args.tag
@@ -294,7 +305,7 @@ def cmd_clean(args):
         term.prn("No custom string version found for tag \"" + tag + "\"")
 
 
-def cmd_cleanall(args):
+def cmd_cleanall(cfg, args):
     if os.path.exists(NEXT_STORE_FILE):
         os.unlink(NEXT_STORE_FILE)
         term.prn("All previously set custom strings have been removed.")
@@ -302,7 +313,7 @@ def cmd_cleanall(args):
         term.prn("No NEXT custom strings found.")
 
 
-def cmd_list_next(args):
+def cmd_list_next(cfg, args):
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -324,12 +335,12 @@ def cmd_list_next(args):
         term.prn("No NEXT custom strings set.")
 
 
-def cmd_check_gitignore(args):
+def cmd_check_gitignore(cfg, args):
     if check_gitignore():
         term.prn("Your .gitignore file looks fine.")
     else:
-        term.prn("Your .gitignore file doesn't define any rule for the "
-                 ".gitver\nconfiguration directory: it's recommended to "
+        term.prn("Your .gitignore file doesn't define any rule for the " +
+                 CFGDIRNAME + "\nconfiguration directory: it's recommended to "
                  "exclude it from\nthe repository, unless you know what you "
                  "are doing. If you are not\nsure, add this line to your "
                  ".gitignore file:\n\n    " + CFGDIRNAME + "\n")

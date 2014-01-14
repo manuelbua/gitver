@@ -10,7 +10,7 @@ import json
 import string
 from os.path import exists, dirname
 from gitver.defines import CFGFILE
-from termcolors import term
+from termcolors import term, bold
 
 default_config_text = """{
     # automatically generated configuration file
@@ -68,7 +68,18 @@ def remove_comments(text):
 default_config = json.loads(remove_comments(default_config_text))
 
 
-def init_or_load_user_config():
+def create_default_configuration_file():
+    # creates a default configuration file from the
+    # default gitver's configuration text string
+    if not exists(CFGFILE):
+        if exists(dirname(CFGFILE)):
+            with open(CFGFILE, 'w') as f:
+                f.writelines(default_config_text)
+                return True
+    return False
+
+
+def load_user_config():
     # try load user configuration
     try:
 
@@ -80,32 +91,15 @@ def init_or_load_user_config():
                     data += l
             user = json.loads(data)
 
-            # check for old configuration file format
-            if len(user) <= 2:
-                term.warn("Your configuration file \"" + CFGFILE +
-                          "\" is a deprecated version.\nPlease rename or "
-                          "remove it, gitver will then create a new one for "
-                          "you.")
-
     except IOError:
         user = dict()
 
-        # save to file as an example
-        if not exists(CFGFILE):
-            if exists(dirname(CFGFILE)):
-                with open(CFGFILE, 'w') as f:
-                    f.writelines(default_config_text)
-                    term.prn("(wrote default configuration file \"" + CFGFILE +
-                             "\")")
-
-    except ValueError as v:
-        term.prn("An error occured parsing the configuration file at \"" +
-                 CFGFILE + "\": " + v.message)
-        term.prn("You could rename or delete it, gitver will then create a "
-                 "new one for you.")
+    except (ValueError, KeyError) as v:
+        term.err("An error occured parsing the configuration file \"" +
+                 CFGFILE + "\": " + v.message +
+                 "\nPlease check its syntax or rename it and generate the "
+                 "default one with the " + bold("gitver init") + " command.")
         sys.exit(1)
 
     # merge user with defaults
     return dict(default_config, **user)
-
-cfg = init_or_load_user_config()
