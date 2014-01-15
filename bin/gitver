@@ -38,48 +38,52 @@ def main():
 
     from gitver.commands import cmd_clean, cmd_cleanall, cmd_next, cmd_version
 
-    # always permit the "version" command to run
-    if len(sys.argv) == 2 and sys.argv[1] == 'version':
-        cmd_version(None, None)
-        sys.exit(0)
-
-    check_project_root()
+    cfg = None
     inject_default_action()
     parser = create_parser()
     args = parser.parse_args()
 
-    # apply quiet flags
-    term.set_quiet_flags(args.quiet_stdout, args.quiet_stderr)
+    # always permit simple, innocuous commands to be run
+    innocuous = ['version', '--help']
+    if len(sys.argv) == 2 and sys.argv[1] in innocuous:
+        pass
+    else:
+        check_project_root()
 
-    cfg = None
+        # apply quiet flags
+        term.set_quiet_flags(args.quiet_stdout, args.quiet_stderr)
 
-    # avoid check if 'init' command
-    if not 'init' in sys.argv:
-        check_config_dir()
+        # avoid check if 'init' command
+        if not 'init' in sys.argv:
+            check_config_dir()
 
-        # apply colors configuration
-        from gitver.config import load_user_config
-        cfg = load_user_config()
+            # apply colors configuration
+            from gitver.config import load_user_config
+            cfg = load_user_config()
 
-        term.enable_colors(cfg['use_terminal_colors'])
+            term.enable_colors(cfg['use_terminal_colors'])
 
-        # apply colors from command line
-        if args.use_colors == 'yes':
-            term.enable_colors(True)
-        elif args.use_colors == 'no':
-            term.enable_colors(False)
+            # apply colors from command line
+            if args.use_colors == 'yes':
+                term.enable_colors(True)
+            elif args.use_colors == 'no':
+                term.enable_colors(False)
 
-        if cfg['safe_mode'] and not args.ignore_gitignore:
-            if args.func in [cmd_next, cmd_clean, cmd_cleanall]:
-                if not check_gitignore():
-                    term.warn("A potentially unsafe operation has been "
-                              "prevented to\ncontinue because your .gitignore "
-                              "file doesn't exclude gitver's\nconfiguration "
-                              "directory from the repository.\nIf you know what"
-                              " you are doing, use the \"--ignore-gitignore\"\n"
-                              "flag to ignore this warning or just disable "
-                              "\"safe_mode\" in\nyour configuration file.")
-                    sys.exit(1)
+            if cfg['safe_mode'] and not args.ignore_gitignore:
+                if args.func in [cmd_next, cmd_clean, cmd_cleanall]:
+                    if not check_gitignore():
+                        term.warn("A potentially unsafe operation has been "
+                                  "prevented to\ncontinue because your "
+                                  ".gitignore "
+                                  "file doesn't exclude "
+                                  "gitver's\nconfiguration "
+                                  "directory from the repository.\nIf you "
+                                  "know what"
+                                  " you are doing, use the "
+                                  "\"--ignore-gitignore\"\n"
+                                  "flag to ignore this warning or just disable "
+                                  "\"safe_mode\" in\nyour configuration file.")
+                        sys.exit(1)
 
     return args.func(cfg, args)
 
