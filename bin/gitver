@@ -74,14 +74,11 @@ def main():
                     if not check_gitignore():
                         term.warn("A potentially unsafe operation has been "
                                   "prevented to\ncontinue because your "
-                                  ".gitignore "
-                                  "file doesn't exclude "
-                                  "gitver's\nconfiguration "
-                                  "directory from the repository.\nIf you "
-                                  "know what"
-                                  " you are doing, use the "
-                                  "\"--ignore-gitignore\"\n"
-                                  "flag to ignore this warning or just disable "
+                                  ".gitignore file doesn't exclude gitver's\n"
+                                  "configuration directory from the "
+                                  "repository.\nIf you know what you are doing"
+                                  ", use the \"--ignore-gitignore\"\nflag to "
+                                  "ignore this warning or just disable "
                                   "\"safe_mode\" in\nyour configuration file.")
                         sys.exit(1)
 
