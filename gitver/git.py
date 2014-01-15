@@ -22,12 +22,20 @@ hash_matcher = r".*-g([a-fA-F0-9]+)"
 tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]*))?"
 
 
+def __git_raw(*args):
+    """
+    @return sh.RunningCommand
+    Proxies the specified git command+args and returns it
+    """
+    return sh.git(args)
+
+
 def __git(*args):
     """
     Proxies the specified git command+args and returns a cleaned up version
     of the stdout buffer.
     """
-    return sh.git(args).stdout.replace('\n', '')
+    return __git_raw(*args).stdout.replace('\n', '')
 
 
 def git_version():
