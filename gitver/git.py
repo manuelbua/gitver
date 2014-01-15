@@ -54,17 +54,6 @@ def project_root():
     return root
 
 
-def describe_hash():
-    try:
-        tagver = __git('describe', '--long', '--match=v*')
-        vm = re.match(hash_matcher, tagver).groups()
-        if len(vm) != 1:
-            raise AttributeError
-    except (ErrorReturnCode, AttributeError):
-        return False
-    return vm[0]
-
-
 def count_tag_to_head(tag):
     try:
         c = __git('rev-list', tag + "..HEAD", '--count')
@@ -100,25 +89,42 @@ def data_from_tag(tag):
     return data
 
 
+def min_hash_length():
+    """
+    Determines the minimum length of an hash string for this repository
+    to uniquely describe a commit.
+    gitver's minimum length is 7 characters, to avoid frequent hash string
+    length variations in fast-growing projects.
+    """
+    try:
+        out = __git_raw('rev-list', '--all', '--abbrev=0',
+                        '--abbrev-commit').stdout
+    except ErrorReturnCode:
+        return 0
+
+    min_accepted = 7
+
+    # build a set of commit hash lengths
+    commits = {
+        len(commit) for commit in out.split('\n') if len(commit) >= min_accepted
+    }
+
+    if len(commits) > 0:
+        # pick the max
+        return max(commits)
+
+    return min_accepted
+
+
 def get_repo_info():
-    # retrieve basic repository information
-    desc_hash = describe_hash()
-    if desc_hash is None or not desc_hash:
-        term.err("Couldn't describe current hash, please check the presence of "
-                 "at least one proper tag (vX.Y.Z or "
-                 "vX.Y.Z[-RELEASE.METADATA]).")
+    hashlen = min_hash_length()
+    if not hashlen:
+        term.err("Couldn't compute the minimum hash string length")
         sys.exit(1)
 
-    hashlen = len(desc_hash)
     full_build_id = get_build_id()
-    if not full_build_id or hashlen == 0:
+    if not full_build_id:
         term.err("Couldn't retrieve build id information")
-        sys.exit(1)
-
-    # sanity check
-    if not full_build_id.startswith(desc_hash):
-        term.err("Hash problem detected: git-describe reports " + desc_hash +
-                 ", but HEAD id is " + full_build_id)
         sys.exit(1)
 
     tag = last_tag()
@@ -129,7 +135,8 @@ def get_repo_info():
     data = data_from_tag(tag)
     if data is None:
         term.err("Couldn't retrieve version information from tag \"" + tag +
-                 "\"")
+                 "\".\ngitver expects tags to be in the format "
+                 "[v]X.Y.Z[-PRE-RELEASE-METADATA]")
         sys.exit(1)
 
     vmaj = int(data[0])
