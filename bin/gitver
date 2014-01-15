@@ -36,7 +36,7 @@ def main():
     from gitver.sanity import check_config_dir, check_gitignore, \
         check_project_root
 
-    from gitver.commands import cmd_clean, cmd_cleanall, cmd_next, cmd_version
+    from gitver.commands import cmd_clean, cmd_cleanall, cmd_next
 
     cfg = None
     inject_default_action()
