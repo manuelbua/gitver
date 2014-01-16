@@ -34,7 +34,7 @@ Furthermore, i want the version string and/or other useful information to be **e
 
 `gitver` expects your tags to be **annotated** and be in this format:
 
-    [v]X.Y.Z[-PRE-RELEASE-METADATA]
+    [v]MAJOR.MINOR.PATCH[-PRE-RELEASE-METADATA]
 
 Text in `[` square brackets `]` is optional, so these example tags are all valid for use with `gitver`:
 
@@ -67,61 +67,11 @@ The following is a workflow exemplification of using *gitver* to manage version 
 - now you are working towards the NEXT release, repeat when release time has came again
 
 
-## Notes on the example output in this document
-
-As of `v0.3.0-RC1`, the default version string format has changed, adopting the [Semantic Versioning](https://semver.org) scheme: example output such as `v0.0.0/e2c8ce21` will be different, but the workflow itself hasn't changed, so you should be able to follow this document without problems.
-
-*I'll update the examples' output as soon as i've the time to do it, sorry!*
-
-
 ## How does it work?
 
-By reading your last reachable **annotated** tag, it will generate human-readable version strings, distinguishing automatically between *stable* and *development* builds, depending on the number of commits from that last tag (the *commit count*).
+By reading your last reachable **annotated** tag, it will generate customly-formatted version strings, distinguishing automatically between *stable* and *development* builds, depending on the number of commits from that last tag (the *commit count*).
 
-As an example, let's assume the following history:
-
-    * 81dfbe1  (master) (Sun Jan 5 14:25:32 2014) some more
-    * 1200eec  (Sun Jan 5 14:24:59 2014) changed stuff
-    * 1d36d68  (Sun Jan 5 14:24:42 2014) another change
-    * e2c8ce2  (HEAD, tag: v0.0.0) (Sun Jan 5 14:02:36 2014) test
-
-In this case the commit count is `0` (HEAD is at `v0.0.0`), so a version string for a *stable* build will be generated:
-
-    v0.0.0/e2c8ce21
-
-Note how stable builds do not have any suffix and the commit count of `0` is just discarded.
-By moving HEAD to `master`, instead, will produce a slightly different version string, let's see that:
-
-    * 81dfbe1  (HEAD, master) (Sun Jan 5 14:25:32 2014) some more
-    * 1200eec  (Sun Jan 5 14:24:59 2014) changed stuff
-    * 1d36d68  (Sun Jan 5 14:24:42 2014) another change
-    * e2c8ce2  (tag: v0.0.0) (Sun Jan 5 14:02:36 2014) test
-
-Now the commit count is `3`, this indicates that you are working toward the NEXT release, the NEXT version numbers haven't been defined yet, so the newly generated version string will now be:
-
-    v0.0.0-NEXT-3/81dfbe12
-
-This is the default form of describing a NEXT release, that is, when a NEXT version has not yet been defined but some work has been done **past** the last tagged release: it's quite similar to the one produced by `git describe`, in fact the information are the very same, only the -NEXT suffix has been added in-between.
-
-But we can do more than this: `gitver` gives the option to define the NEXT version numbers for the latest tag, so let's define it to be `0.0.1`:
-
-    gitver next 0.0.1
-    Set NEXT version string to 0.0.1 for the current tag v0.0.0
-
-Now that it has been set, the very same point in development can then be described more intelligently:
-
-    v0.0.1-SNAPSHOT-3/81dfbe12
-
-Got it? You basically defined what the next tag name *will* be, and the correct version string is generated for you.
-
-Unhappy of what you have choosen for the next version numbers? Want to bump a bit more? Then just set the NEXT version numbers to something else:
-
-    gitver next 1.0.0
-    Set NEXT version string to 1.0.0 for the current tag v0.0.0
-
-The version string will now be:
-
-    v1.0.0-SNAPSHOT-3/81dfbe12
+It will also apply tag-based or configuration file-based pre-release metadata in development builds, giving you fine-grained control on how the final version string will be composed.
 
 
 ## Config file
