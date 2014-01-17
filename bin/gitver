@@ -86,6 +86,10 @@ def main():
 
 
 def inject_default_action():
+    """
+    Inspects the actual command line arguments and inject the default action
+    'info' if none has been found.
+    """
     is_short = len(sys.argv) < 2
     only_flags = True
     for arg in sys.argv[1:]:
@@ -95,6 +99,9 @@ def inject_default_action():
 
 
 def create_parser():
+    """
+    Construct and returns the main command line argument parser.
+    """
     parser = argparse.ArgumentParser()
 
     # ignore gitver-generated warnings (not recommended!)
@@ -134,6 +141,9 @@ def create_parser():
 
 
 def create_commands(sp):
+    """
+    Create available commands to be selected from the command line.
+    """
     from gitver.commands import cmd_build_template, cmd_clean, cmd_cleanall, \
         cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
         cmd_version, cmd_current, cmd_check_gitignore, cmd_preview_template
@@ -186,6 +196,9 @@ def create_commands(sp):
 
 
 def add_command(parent, name, desc, func):
+    """
+    Add a single command to the specified parser.
+    """
     p = parent.add_parser(name, help=desc)
     p.set_defaults(func=func)
     return p

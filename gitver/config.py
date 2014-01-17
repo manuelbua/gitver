@@ -57,6 +57,10 @@ default_config_text = """{
 
 
 def remove_comments(text):
+    """
+    Removes line comments denoted by sub-strings starting with a '#'
+    character from the specified string, construct a new text and returns it.
+    """
     data = string.split(text, '\n')
     ret = ''
     for line in data:
@@ -69,8 +73,11 @@ default_config = json.loads(remove_comments(default_config_text))
 
 
 def create_default_configuration_file():
-    # creates a default configuration file from the
-    # default gitver's configuration text string
+    """
+    Creates a default configuration file from the default gitver's
+    configuration text string in the predefined gitver's configuration
+    directory.
+    """
     if not exists(CFGFILE):
         if exists(dirname(CFGFILE)):
             with open(CFGFILE, 'w') as f:
@@ -80,7 +87,11 @@ def create_default_configuration_file():
 
 
 def load_user_config():
-    # try load user configuration
+    """
+    Returns the gitver's configuration: tries to read the stored configuration
+    file and merges it with the default one, ensuring a valid configuration is
+    always returned.
+    """
     try:
 
         with open(CFGFILE, 'r') as f:
