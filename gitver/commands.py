@@ -304,8 +304,10 @@ def cmd_next(cfg, args):
         sys.exit(1)
 
     custom = "%d.%d.%d" % (int(user['maj']), int(user['min']), int(user['patch']))
-    if len(user) == 4:
+
+    if user['revision'] is not None:
         custom += ".%d" % (int(user['revision']))
+
     next_store.set(last_tag, custom).save()
     term.out("Set NEXT version string to " + term.next(custom) +
              " for the current tag " + term.tag(last_tag))
