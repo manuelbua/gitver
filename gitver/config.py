@@ -40,8 +40,9 @@ default_config_text = """{
     "commit_count_prefix": ".",
 
     # Python-based format string variable names are:
-    #     maj, min, patch, meta_pr_prefix, meta_pr, commit_count_prefix,
-    #     commit_count, build_id, build_id_full
+    #     maj, min, patch, rev, rev_prefix, meta_pr_prefix, meta_pr,
+    #     commit_count_prefix, commit_count, build_id, build_id_full
+    #
     # Note that prefixes will be empty strings if their valued counterpart
     # doesn't have a meaningful value (i.e., 0 for commit count, no meta
     # pre-release, ..)
