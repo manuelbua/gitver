@@ -34,7 +34,7 @@ Furthermore, i want the version string and/or other useful information to be **e
 
 `gitver` expects your tags to be **annotated** and be in this format:
 
-    [v]MAJOR.MINOR.PATCH[-PRE-RELEASE-METADATA]
+    [v]MAJOR.MINOR.PATCH[.REVISION][-PRE-RELEASE-METADATA]
 
 Text in `[` square brackets `]` is optional, so these example tags are all valid for use with `gitver`:
 
@@ -45,7 +45,7 @@ Text in `[` square brackets `]` is optional, so these example tags are all valid
 Note that, at this time, `gitver` will **not** skip unsupported tags during its processing, so whenever it encounter such malformed tags (i.e. "this-is-my-tag") it will just error out something like this:
 
     ERROR: Couldn't retrieve version information from tag "my-other-tag".
-    gitver expects tags to be in the format [v]X.Y.Z[-PRE-RELEASE-METADATA]
+    gitver expects tags to be in the format [v]X.Y.Z[.REVISION][-PRE-RELEASE-METADATA]
 
 However, since `gitver` will only search for annotated tags, you could safely use *unannotated tags* for any other need.
 
