@@ -29,9 +29,9 @@
 
     # format string used to build the current version string when the
     # commit count is 0
-    "format": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s",
+    "format": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s",
 
     # format string used to build the current version string when the
     # commit count is > 0
-    "format_next": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
+    "format_next": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
 }

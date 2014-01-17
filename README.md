@@ -8,7 +8,9 @@ A very simple, lightweight, tag-based version string manager for git, written in
 
 It generates version strings by using Python-based formatting rules coupled with repository information, augmented by user-defined data.
 
-Makes very easy to adopt versioning schemes such as [Semantic Versioning](https://semver.org) and keeps version information automagically updated.
+It supports up to four different version number operands and optional pre-release version information, in the format `[v]MAJOR.MINOR.PATCH[.REVISION][-PRE-RELEASE-METADATA]`, making to adopt versioning schemes such as [Semantic Versioning](https://semver.org) a breeze.
+
+Optionally, it also keeps your project's version information blobs automagically updated via custom templates.
 
 Sample output (this repository):
 
@@ -34,7 +36,7 @@ Furthermore, i want the version string and/or other useful information to be **e
 
 `gitver` expects your tags to be **annotated** and be in this format:
 
-    [v]MAJOR.MINOR.PATCH[-PRE-RELEASE-METADATA]
+    [v]MAJOR.MINOR.PATCH[.REVISION][-PRE-RELEASE-METADATA]
 
 Text in `[` square brackets `]` is optional, so these example tags are all valid for use with `gitver`:
 
@@ -45,7 +47,7 @@ Text in `[` square brackets `]` is optional, so these example tags are all valid
 Note that, at this time, `gitver` will **not** skip unsupported tags during its processing, so whenever it encounter such malformed tags (i.e. "this-is-my-tag") it will just error out something like this:
 
     ERROR: Couldn't retrieve version information from tag "my-other-tag".
-    gitver expects tags to be in the format [v]X.Y.Z[-PRE-RELEASE-METADATA]
+    gitver expects tags to be in the format [v]X.Y.Z[.REVISION][-PRE-RELEASE-METADATA]
 
 However, since `gitver` will only search for annotated tags, you could safely use *unannotated tags* for any other need.
 
@@ -54,7 +56,7 @@ However, since `gitver` will only search for annotated tags, you could safely us
 
 Your workflow shouldn't change much from what you are used to, but before using it, please review the "Repository pre-requisites" section above and ensure your tags are not already being used for some other purpose.
 
-*Note that `gitver` will **never** tag, commit or interact in write-mode with your repository in any way ever.*
+*Note that `gitver` will **never** tag, commit or interact in write-mode with your repository in any way, ever!*
 
 The following is a workflow exemplification of using *gitver* to manage version strings for your project, given it has already been setup:
 

@@ -22,7 +22,8 @@ from version import gitver_version, gitver_buildid
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
 TPLDIR = os.path.join(CFGDIR, 'templates')
 
-user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
+user_version_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)" \
+                       r"(?:\.(?P<revision>\d+))?$"
 
 
 #
@@ -30,10 +31,21 @@ user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
 #
 
 def template_path(name):
+    """
+    Constructs and returns the absolute path for the specified template file
+    name.
+    """
     return os.path.join(TPLDIR, name)
 
 
 def parse_templates(cfg, templates, repo, next_custom, preview):
+    """
+    Parse one or more templates, substitute placeholder variables with
+    real values and write the result to the file specified in the template.
+
+    If preview is True, then the output will be written to the stdout while
+    informative messages will be output to the stderr.
+    """
     for t in templates.split(' '):
         tpath = template_path(t)
         if os.path.exists(tpath):
@@ -108,10 +120,14 @@ def parse_templates(cfg, templates, repo, next_custom, preview):
             sys.exit(1)
 
 
-def user_numbers_from_string(user):
+def parse_user_next_stable(user):
+    """
+    Parse the specified user-defined string containing the next stable version
+    numbers and returns the discretized matches in a dictionary.
+    """
     try:
-        data = re.match(user_version_matcher, user).groups()
-        if len(data) != 3:
+        data = re.match(user_version_matcher, user).groupdict()
+        if len(data) < 3:
             raise AttributeError
     except AttributeError:
         return False
@@ -119,24 +135,38 @@ def user_numbers_from_string(user):
 
 
 def build_format_args(cfg, repo_info, next_custom=None):
+    """
+    Builds the formatting arguments by processing the specified repository
+    information and returns them.
+
+    If a tag defines pre-release metadata, this will have the precedence
+    over any existing user-defined string.
+    """
     in_next = repo_info['count'] > 0
-    has_next_custom = not next_custom is None and len(next_custom) > 0
+    has_next_custom = next_custom is not None and len(next_custom) > 0
 
     vmaj = repo_info['maj']
     vmin = repo_info['min']
     vpatch = repo_info['patch']
+    vrev = repo_info['rev']
     vcount = repo_info['count']
     vpr = repo_info['pr']
     vbuildid = repo_info['build-id']
     has_pr = vpr is not None
+    has_rev = vrev is not None
+
+    # pre-release metadata in a tag has precedence over user-specified
+    # NEXT strings
     if in_next and has_next_custom and not has_pr:
-        u = user_numbers_from_string(next_custom)
+        u = parse_user_next_stable(next_custom)
         if not u:
             term.err("Invalid custom NEXT version numbers detected!")
             sys.exit(1)
-        vmaj = u[0]
-        vmin = u[1]
-        vpatch = u[2]
+        vmaj = u['maj']
+        vmin = u['min']
+        vpatch = u['patch']
+        vrev = u['revision']
+        has_rev = vrev is not None
 
     meta_pr = vpr if has_pr else \
         cfg['default_meta_pr_in_next'] if in_next and has_next_custom else \
@@ -146,6 +176,8 @@ def build_format_args(cfg, repo_info, next_custom=None):
         'maj': vmaj,
         'min': vmin,
         'patch': vpatch,
+        'rev': vrev if has_rev else '',
+        'rev_prefix': '.' if has_rev else '',
         'meta_pr': meta_pr,
         'meta_pr_prefix': cfg['meta_pr_prefix'] if len(meta_pr) > 0 else '',
         'commit_count': vcount,
@@ -158,8 +190,15 @@ def build_format_args(cfg, repo_info, next_custom=None):
 
 
 def build_version_string(cfg, repo, promote=False, next_custom=None):
+    """
+    Builds the final version string by processing the specified repository
+    information, optionally handling version promotion.
+
+    Version promotion will just return the user-specified next version string,
+    if any is present, else an empty string will be returned.
+    """
     in_next = repo['count'] > 0
-    has_next_custom = not next_custom is None and len(next_custom) > 0
+    has_next_custom = next_custom is not None and len(next_custom) > 0
 
     if promote:
         if has_next_custom:
@@ -178,6 +217,10 @@ def build_version_string(cfg, repo, promote=False, next_custom=None):
 #
 
 def cmd_version(cfg, args):
+    """
+    Generates gitver's version string and license information and prints it
+    to the stdout.
+    """
     v = ('v' + gitver_version) if gitver_version is not None else 'n/a'
     b = gitver_buildid if gitver_buildid is not None else 'n/a'
     term.out("This is gitver " + bold(v))
@@ -187,6 +230,13 @@ def cmd_version(cfg, args):
 
 
 def cmd_init(cfg, args):
+    """
+    Initializes the current repository by creating the gitver's configuration
+    directory and creating the default configuration file, if none is present.
+
+    Multiple executions of this command will regenerate the default
+    configuration file whenever it's not found.
+    """
     from config import create_default_configuration_file
     i = 0
 
@@ -209,6 +259,10 @@ def cmd_init(cfg, args):
 
 
 def cmd_current(cfg, args):
+    """
+    Generates the current version string, depending on the state of the
+    repository and prints it to the stdout.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -218,6 +272,10 @@ def cmd_current(cfg, args):
 
 
 def cmd_info(cfg, args):
+    """
+    Generates version string and repository information and prints it to the
+    stdout.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -254,6 +312,10 @@ def cmd_info(cfg, args):
 
 
 def cmd_list_templates(cfg, args):
+    """
+    Generates a list of available templates by inspecting the gitver's template
+    directory and prints it to the stdout.
+    """
     tpls = [f for f in os.listdir(TPLDIR) if os.path.isfile(template_path(f))]
     if len(tpls) > 0:
         term.out("Available templates:")
@@ -264,6 +326,12 @@ def cmd_list_templates(cfg, args):
 
 
 def __cmd_build_template(cfg, args, preview=False):
+    """
+    Internal-only function used for avoiding code duplication between
+    template-operating functions.
+
+    See cmd_build_template and cmd_preview_template for the full docs.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -273,33 +341,60 @@ def __cmd_build_template(cfg, args, preview=False):
 
 
 def cmd_build_template(cfg, args):
+    """
+    Performs placeholder variables substitution on the templates specified by
+    the @param args parameter and write the result to each respective output
+    file specified by the template itself.
+    """
     __cmd_build_template(cfg, args)
 
 
 def cmd_preview_template(cfg, args):
+    """
+    Performs placeholder variables substitution on the templates specified by
+    the @param args parameter and prints the result to the stdout.
+    """
     __cmd_build_template(cfg, args, True)
 
 
 def cmd_next(cfg, args):
+    """
+    Sets and defines the next stable version string for the most recent and
+    reachable tag.
+
+    The string should be supplied in the format "maj.min.patch[.revision]",
+    where angular brackets denotes an optional value.
+
+    All values are expected to be decimal numbers without leading zeros.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
 
     last_tag = repo_info['last-tag']
 
     vn = args.next_version_numbers
-    user = user_numbers_from_string(vn)
+    user = parse_user_next_stable(vn)
     if not user:
         term.err("Please specify valid version numbers.\nThe expected "
-                 "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1")
+                 "format is <MAJ>.<MIN>.<PATCH>[.<REVISION>], e.g. v0.0.1, "
+                 "0.0.1 or 0.0.2.1")
         sys.exit(1)
 
-    custom = "%d.%d.%d" % (int(user[0]), int(user[1]), int(user[2]))
+    custom = "%d.%d.%d" % (int(user['maj']), int(user['min']), int(user['patch']))
+
+    if user['revision'] is not None:
+        custom += ".%d" % (int(user['revision']))
+
     next_store.set(last_tag, custom).save()
     term.out("Set NEXT version string to " + term.next(custom) +
              " for the current tag " + term.tag(last_tag))
 
 
 def cmd_clean(cfg, args):
+    """
+    Removes the user-defined next stable version for the most recent and
+    reachable tag or for the tag specified by the @param args parameter.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     if len(args.tag) > 0:
         tag = args.tag
@@ -319,6 +414,9 @@ def cmd_clean(cfg, args):
 
 
 def cmd_cleanall(cfg, args):
+    """
+    Removes ALL user-defined next stable versions.
+    """
     if os.path.exists(NEXT_STORE_FILE):
         os.unlink(NEXT_STORE_FILE)
         term.out("All previously set custom strings have been removed.")
@@ -327,6 +425,10 @@ def cmd_cleanall(cfg, args):
 
 
 def cmd_list_next(cfg, args):
+    """
+    Generates a list of all user-defined next stable versions and prints them
+    to the stdout.
+    """
     next_store = KVStore(NEXT_STORE_FILE)
     repo_info = get_repo_info()
     last_tag = repo_info['last-tag']
@@ -349,6 +451,14 @@ def cmd_list_next(cfg, args):
 
 
 def cmd_check_gitignore(cfg, args):
+    """
+    Provides a way to ensure that at least one line in the .gitignore file for
+    the current repository defines the '.gitver' directory in some way.
+
+    This means that even a definition such as "!.gitver" will pass the check,
+    but this imply some reasoning has been made before declaring something like
+    this.
+    """
     if check_gitignore():
         term.out("Your .gitignore file looks fine.")
     else:

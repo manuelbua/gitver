@@ -2,7 +2,7 @@
 # coding=utf-8
 
 """
-Implements reused sanity checks
+Implements various sanity checks
 """
 
 import os

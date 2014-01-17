@@ -1,6 +1,9 @@
 #!/usr/bin/env python2
 # coding=utf-8
 
+"""
+Provides gitver's version by dynamically loading the optional _version module.
+"""
 
 gitver_version = None
 gitver_buildid = None
