@@ -8,7 +8,9 @@ A very simple, lightweight, tag-based version string manager for git, written in
 
 It generates version strings by using Python-based formatting rules coupled with repository information, augmented by user-defined data.
 
-Makes very easy to adopt versioning schemes such as [Semantic Versioning](https://semver.org) and keeps version information automagically updated.
+It supports up to four different version number operands and optional pre-release version information, in the format `[v]MAJOR.MINOR.PATCH[.REVISION][-PRE-RELEASE-METADATA]`, making to adopt versioning schemes such as [Semantic Versioning](https://semver.org) a breeze.
+
+Optionally, it also keeps your project's version information blobs automagically updated via custom templates.
 
 Sample output (this repository):
 
