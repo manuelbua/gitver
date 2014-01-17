@@ -1,6 +1,7 @@
 [![PyPi version](https://pypip.in/v/gitver/badge.png)](https://crate.io/packages/gitver/)
 [![PyPi downloads](https://pypip.in/d/gitver/badge.png)](https://crate.io/packages/gitver/)
 [![Project Stats](https://ohloh.net/p/gitver/widgets/project_thin_badge.gif)](https://ohloh.net/projects/gitver)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=manuelbua&url=https://github.com/manuelbua/gitver&title=gitver&language=&tags=github&category=software)
 
 
 ## What is it?
@@ -125,7 +126,6 @@ The default configuration file gets created automatically in `.gitver/config` an
         # commit count is > 0
         "format_next": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
     }
-
 This file gets created automatically in your `.gitver` directory when you initialize it with the `gitver init` command: should you need to regenerate it, for example after updating to a `gitver` release that adds more configuration options (this will be noted in the ChangeLog or by other means), you just need to move/delete the old configuration and trigger regeneration by re-issuing the init command.
 
 ## Basic usage 
