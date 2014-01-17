@@ -169,7 +169,7 @@ def build_format_args(cfg, repo_info, next_custom=None):
 
 def build_version_string(cfg, repo, promote=False, next_custom=None):
     in_next = repo['count'] > 0
-    has_next_custom = not next_custom is None and len(next_custom) > 0
+    has_next_custom = next_custom is not None and len(next_custom) > 0
 
     if promote:
         if has_next_custom:
