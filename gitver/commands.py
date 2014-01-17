@@ -22,7 +22,8 @@ from version import gitver_version, gitver_buildid
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
 TPLDIR = os.path.join(CFGDIR, 'templates')
 
-user_version_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)(?:\.(?P<revision>\d+))?$"
+user_version_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)" \
+                       r"(?:\.(?P<revision>\d+))?$"
 
 
 #

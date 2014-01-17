@@ -19,9 +19,8 @@ except ImportError:
     sys.exit(1)
 
 hash_matcher = r".*-g([a-fA-F0-9]+)"
-#tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]*))?"
-#tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?[^-]*(?:-([0-9A-Za-z-.]*))?"
-tag_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)(?:\.(?P<revision>\d+))?[^-]*(?:-(?P<prmeta>[0-9A-Za-z-.]*))?"
+tag_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)" \
+              r"(?:\.(?P<revision>\d+))?[^-]*(?:-(?P<prmeta>[0-9A-Za-z-.]*))?"
 
 
 
