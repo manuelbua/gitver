@@ -138,18 +138,18 @@ def create_commands(sp):
         cmd_info, cmd_init, cmd_list_next, cmd_list_templates, cmd_next, \
         cmd_version, cmd_current, cmd_check_gitignore, cmd_preview_template
 
-    add_command(sp, 'version', "Show gitver version", cmd_version)
-    add_command(sp, 'init', "Create gitver's configuration directory and "
-                            "create the default configuration file, if it "
+    add_command(sp, 'version', "Shows gitver version", cmd_version)
+    add_command(sp, 'init', "Creates gitver's configuration directory and "
+                            "creates the default configuration file, if it "
                             "doesn't exist.", cmd_init)
-    add_command(sp, 'check', "Check your .gitignore file for gitver's "
+    add_command(sp, 'check', "Checks your .gitignore file for gitver's "
                              "configuration directory inclusion.",
                 cmd_check_gitignore)
 
-    add_command(sp, 'info', "Print full version information and tag-based "
+    add_command(sp, 'info', "Prints full version information and tag-based "
                             "metadata for this repository. [default]",
                 cmd_info)
-    add_command(sp, 'current', "Print the current version information only, "
+    add_command(sp, 'current', "Prints the current version information only, "
                                "without any formatting applied.", cmd_current)
 
     add_command(sp, 'list-templates', "Enumerates available templates.",
@@ -158,7 +158,7 @@ def create_commands(sp):
     add_command(sp, 'list-next', "Enumerates user-defined next stable "
                                  "versions.", cmd_list_next)
 
-    p = add_command(sp, 'update', "Perform simple keyword substitution on the "
+    p = add_command(sp, 'update', "Performs simple keyword substitution on the "
                                   "specified template file(s) and place it to "
                                   "the path described by the first line in the "
                                   "template. This is usually performed "
@@ -172,16 +172,16 @@ def create_commands(sp):
                     cmd_preview_template)
     p.add_argument('templates', default='', type=str)
 
-    p = add_command(sp, 'next', "Define the next stable version for the "
+    p = add_command(sp, 'next', "Defines the next stable version for the "
                                 "most recent and reachable tag.", cmd_next)
     p.add_argument('next_version_numbers', default='', type=str)
 
-    p = add_command(sp, 'clean', "Remove the user-defined next stable version"
+    p = add_command(sp, 'clean', "Removes the user-defined next stable version"
                                  " for the most recent and reachable tag or "
                                  "the specified tag.", cmd_clean)
     p.add_argument('tag', nargs='?', type=str, default='')
 
-    add_command(sp, 'clean-all', "Remove ALL user-defined next stable "
+    add_command(sp, 'clean-all', "Removes ALL user-defined next stable "
                                  "versions.", cmd_cleanall)
 
 
