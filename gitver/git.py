@@ -23,7 +23,6 @@ tag_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)" \
               r"(?:\.(?P<revision>\d+))?[^-]*(?:-(?P<prmeta>[0-9A-Za-z-.]*))?"
 
 
-
 def __git_raw(*args):
     """
     @return sh.RunningCommand
