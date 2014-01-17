@@ -110,19 +110,20 @@ The default configuration file gets created automatically in `.gitver/config` an
         "commit_count_prefix": ".",
 
         # Python-based format string variable names are:
-        #     maj, min, patch, meta_pr_prefix, meta_pr, commit_count_prefix,
-        #     commit_count, build_id, build_id_full
+        #     maj, min, patch, rev, rev_prefix, meta_pr_prefix, meta_pr,
+        #     commit_count_prefix, commit_count, build_id, build_id_full
+        #
         # Note that prefixes will be empty strings if their valued counterpart
         # doesn't have a meaningful value (i.e., 0 for commit count, no meta
         # pre-release, ..)
 
         # format string used to build the current version string when the
         # commit count is 0
-        "format": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s",
+        "format": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s",
 
         # format string used to build the current version string when the
         # commit count is > 0
-        "format_next": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
+        "format_next": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
     }
 
 This file gets created automatically in your `.gitver` directory when you initialize it with the `gitver init` command: should you need to regenerate it, for example after updating to a `gitver` release that adds more configuration options (this will be noted in the ChangeLog or by other means), you just need to move/delete the old configuration and trigger regeneration by re-issuing the init command.
@@ -133,7 +134,7 @@ This file gets created automatically in your `.gitver` directory when you initia
     usage: gitver [-h] [--ignore-gitignore] [--colors {config,yes,no}] [--quiet]
                   [--quiet-errors]
                   
-                  {version,init,check,info,current,list-templates,list-next,update,preview,next,clean,cleanall}
+                  {version,init,check,info,current,list-templates,list-next,update,preview,next,clean,clean-all}
                   ...
 
     optional arguments:
@@ -150,35 +151,35 @@ This file gets created automatically in your `.gitver` directory when you initia
       --quiet-errors        Disable any stderr message.
 
     Valid commands:
-      {version,init,check,info,current,list-templates,list-next,update,preview,next,clean,cleanall}
-        version             Show gitver version
-        init                Create gitver's configuration directory and create the
-                            default configuration file, if it doesn't exist.
-        check               Check your .gitignore file for gitver's configuration
+      {version,init,check,info,current,list-templates,list-next,update,preview,next,clean,clean-all}
+        version             Shows gitver version
+        init                Creates gitver's configuration directory and creates
+                            the default configuration file, if it doesn't exist.
+        check               Checks your .gitignore file for gitver's configuration
                             directory inclusion.
-        info                Print full version information and tag-based metadata
+        info                Prints full version information and tag-based metadata
                             for this repository. [default]
-        current             Print the current version information only, without
+        current             Prints the current version information only, without
                             any formatting applied.
         list-templates      Enumerates available templates.
-        list-next           Enumerates NEXT custom strings.
-        update              Perform simple keyword substitution on the specified
+        list-next           Enumerates user-defined next stable versions.
+        update              Performs simple keyword substitution on the specified
                             template file(s) and place it to the path described by
                             the first line in the template. This is usually
                             performed *AFTER* a release has been tagged already.
         preview             Same as "update", but the output is written to the
                             stdout instead (same rules apply).
-        next                Sets the NEXT version numbers for the currently
-                            reachable last tag.
-        clean               Resets the NEXT custom string for the currently active
-                            tag, or the specified tag, to a clean state.
-        cleanall            Resets all the NEXT custom strings for this
-                            repository.
+        next                Defines the next stable version for the most recent
+                            and reachable tag.
+        clean               Removes the user-defined next stable version for the
+                            most recent and reachable tag or the specified tag.
+        clean-all           Removes ALL user-defined next stable versions.
 
 
 ### Introduction
 
 The following is an easy-to-follow, step-by-step mini tutorial that will walk you through the features of `gitver`: we are going to create a brand new repository at `/tmp/test` for this.
+
 
 ### Step-by-step mini tutorial
 
