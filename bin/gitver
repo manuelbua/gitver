@@ -155,8 +155,8 @@ def create_commands(sp):
     add_command(sp, 'list-templates', "Enumerates available templates.",
                 cmd_list_templates)
 
-    add_command(sp, 'list-next', "Enumerates NEXT custom strings.",
-                cmd_list_next)
+    add_command(sp, 'list-next', "Enumerates user-defined next stable "
+                                 "versions.", cmd_list_next)
 
     p = add_command(sp, 'update', "Perform simple keyword substitution on the "
                                   "specified template file(s) and place it to "
@@ -172,17 +172,17 @@ def create_commands(sp):
                     cmd_preview_template)
     p.add_argument('templates', default='', type=str)
 
-    p = add_command(sp, 'next', "Sets the NEXT version numbers for the "
-                                "currently reachable last tag.", cmd_next)
+    p = add_command(sp, 'next', "Define the next stable version for the "
+                                "most recent and reachable tag.", cmd_next)
     p.add_argument('next_version_numbers', default='', type=str)
 
-    p = add_command(sp, 'clean', "Resets the NEXT custom string for the "
-                                 "currently active tag, or the specified tag, "
-                                 "to a clean state.", cmd_clean)
+    p = add_command(sp, 'clean', "Remove the user-defined next stable version"
+                                 " for the most recent and reachable tag or "
+                                 "the specified tag.", cmd_clean)
     p.add_argument('tag', nargs='?', type=str, default='')
 
-    add_command(sp, 'cleanall', "Resets all the NEXT custom strings for this "
-                                "repository.", cmd_cleanall)
+    add_command(sp, 'clean-all', "Remove ALL user-defined next stable "
+                                 "versions.", cmd_cleanall)
 
 
 def add_command(parent, name, desc, func):
