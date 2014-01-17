@@ -141,7 +141,7 @@ def get_repo_info():
     if data is None:
         term.err("Couldn't retrieve version information from tag \"" + tag +
                  "\".\ngitver expects tags to be in the format "
-                 "[v]X.Y.Z[-PRE-RELEASE-METADATA]")
+                 "[v]X.Y.Z[.REVISION][-PRE-RELEASE-METADATA]")
         sys.exit(1)
 
     vcount = count_tag_to_head(tag)
