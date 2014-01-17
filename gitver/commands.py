@@ -109,7 +109,7 @@ def parse_templates(cfg, templates, repo, next_custom, preview):
             sys.exit(1)
 
 
-def user_numbers_from_string(user):
+def parse_user_next_stable(user):
     try:
         data = re.match(user_version_matcher, user).groupdict()
         if len(data) < 3:
@@ -136,7 +136,7 @@ def build_format_args(cfg, repo_info, next_custom=None):
     # pre-release metadata in a tag has precedence over user-specified
     # NEXT strings
     if in_next and has_next_custom and not has_pr:
-        u = user_numbers_from_string(next_custom)
+        u = parse_user_next_stable(next_custom)
         if not u:
             term.err("Invalid custom NEXT version numbers detected!")
             sys.exit(1)
@@ -297,7 +297,7 @@ def cmd_next(cfg, args):
     last_tag = repo_info['last-tag']
 
     vn = args.next_version_numbers
-    user = user_numbers_from_string(vn)
+    user = parse_user_next_stable(vn)
     if not user:
         term.err("Please specify valid version numbers.\nThe expected "
                  "format is <MAJ>.<MIN>.<PATCH>[.<REVISION>], e.g. v0.0.1, "
