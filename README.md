@@ -56,7 +56,7 @@ However, since `gitver` will only search for annotated tags, you could safely us
 
 Your workflow shouldn't change much from what you are used to, but before using it, please review the "Repository pre-requisites" section above and ensure your tags are not already being used for some other purpose.
 
-*Note that `gitver` will **never** tag, commit or interact in write-mode with your repository in any way ever.*
+*Note that `gitver` will **never** tag, commit or interact in write-mode with your repository in any way, ever!*
 
 The following is a workflow exemplification of using *gitver* to manage version strings for your project, given it has already been setup:
 
