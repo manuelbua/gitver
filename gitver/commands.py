@@ -22,7 +22,7 @@ from version import gitver_version, gitver_buildid
 NEXT_STORE_FILE = os.path.join(CFGDIR, ".next_store")
 TPLDIR = os.path.join(CFGDIR, 'templates')
 
-user_version_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)$"
+user_version_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)(?:\.(?P<revision>\d+))?$"
 
 
 #
@@ -110,8 +110,8 @@ def parse_templates(cfg, templates, repo, next_custom, preview):
 
 def user_numbers_from_string(user):
     try:
-        data = re.match(user_version_matcher, user).groups()
-        if len(data) != 3:
+        data = re.match(user_version_matcher, user).groupdict()
+        if len(data) < 3:
             raise AttributeError
     except AttributeError:
         return False
@@ -120,23 +120,30 @@ def user_numbers_from_string(user):
 
 def build_format_args(cfg, repo_info, next_custom=None):
     in_next = repo_info['count'] > 0
-    has_next_custom = not next_custom is None and len(next_custom) > 0
+    has_next_custom = next_custom is not None and len(next_custom) > 0
 
     vmaj = repo_info['maj']
     vmin = repo_info['min']
     vpatch = repo_info['patch']
+    vrev = repo_info['rev']
     vcount = repo_info['count']
     vpr = repo_info['pr']
     vbuildid = repo_info['build-id']
     has_pr = vpr is not None
+    has_rev = vrev is not None
+
+    # pre-release metadata in a tag has precedence over user-specified
+    # NEXT strings
     if in_next and has_next_custom and not has_pr:
         u = user_numbers_from_string(next_custom)
         if not u:
             term.err("Invalid custom NEXT version numbers detected!")
             sys.exit(1)
-        vmaj = u[0]
-        vmin = u[1]
-        vpatch = u[2]
+        vmaj = u['maj']
+        vmin = u['min']
+        vpatch = u['patch']
+        vrev = u['revision']
+        has_rev = vrev is not None
 
     meta_pr = vpr if has_pr else \
         cfg['default_meta_pr_in_next'] if in_next and has_next_custom else \
@@ -146,6 +153,8 @@ def build_format_args(cfg, repo_info, next_custom=None):
         'maj': vmaj,
         'min': vmin,
         'patch': vpatch,
+        'rev': vrev if has_rev else '',
+        'rev_prefix': '.' if has_rev else '',
         'meta_pr': meta_pr,
         'meta_pr_prefix': cfg['meta_pr_prefix'] if len(meta_pr) > 0 else '',
         'commit_count': vcount,
@@ -290,10 +299,13 @@ def cmd_next(cfg, args):
     user = user_numbers_from_string(vn)
     if not user:
         term.err("Please specify valid version numbers.\nThe expected "
-                 "format is <MAJ>.<MIN>.<PATCH>, e.g. v0.0.1 or 0.0.1")
+                 "format is <MAJ>.<MIN>.<PATCH>[.<REVISION>], e.g. v0.0.1, "
+                 "0.0.1 or 0.0.2.1")
         sys.exit(1)
 
-    custom = "%d.%d.%d" % (int(user[0]), int(user[1]), int(user[2]))
+    custom = "%d.%d.%d" % (int(user['maj']), int(user['min']), int(user['patch']))
+    if len(user) == 4:
+        custom += ".%d" % (int(user['revision']))
     next_store.set(last_tag, custom).save()
     term.out("Set NEXT version string to " + term.next(custom) +
              " for the current tag " + term.tag(last_tag))

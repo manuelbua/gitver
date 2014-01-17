@@ -19,7 +19,10 @@ except ImportError:
     sys.exit(1)
 
 hash_matcher = r".*-g([a-fA-F0-9]+)"
-tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]*))?"
+#tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]*))?"
+#tag_matcher = r"v{0,1}(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?[^-]*(?:-([0-9A-Za-z-.]*))?"
+tag_matcher = r"v{0,1}(?P<maj>\d+)\.(?P<min>\d+)\.(?P<patch>\d+)(?:\.(?P<revision>\d+))?[^-]*(?:-(?P<prmeta>[0-9A-Za-z-.]*))?"
+
 
 
 def __git_raw(*args):
@@ -81,7 +84,7 @@ def last_tag():
 
 def data_from_tag(tag):
     try:
-        data = re.match(tag_matcher, tag).groups()
+        data = re.match(tag_matcher, tag).groupdict()
         if len(data) < 3:
             raise AttributeError
     except AttributeError:
@@ -117,6 +120,9 @@ def min_hash_length():
 
 
 def get_repo_info():
+    """
+    Retrieves raw repository information and returns it for further processing
+    """
     hashlen = min_hash_length()
     if not hashlen:
         term.err("Couldn't compute the minimum hash string length")
@@ -139,12 +145,15 @@ def get_repo_info():
                  "[v]X.Y.Z[-PRE-RELEASE-METADATA]")
         sys.exit(1)
 
-    vmaj = int(data[0])
-    vmin = int(data[1])
-    vpatch = int(data[2])
-    pr = data[3]
     vcount = count_tag_to_head(tag)
 
-    return {'maj': vmaj, 'min': vmin, 'patch': vpatch, 'count': vcount,
-            'build-id': full_build_id[:hashlen], 'full-build-id': full_build_id,
-            'last-tag': tag, 'pr': pr}
+    return {'maj': data['maj'],
+            'min': data['min'],
+            'patch': data['patch'],
+            'rev': data['revision'],
+            'pr': data['prmeta'],
+            'count': vcount,
+            'full-build-id': full_build_id,
+            'build-id': full_build_id[:hashlen],
+            'last-tag': tag
+    }
