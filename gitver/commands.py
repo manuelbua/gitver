@@ -85,6 +85,8 @@ def parse_templates(cfg, templates, repo, next_custom, preview):
                 'MAJOR': args['maj'],
                 'MINOR': args['min'],
                 'PATCH': args['patch'],
+                'REV': args['rev'],
+                'REV_PREFIX': args['rev_prefix'],
                 'BUILD_ID': args['build_id'],
                 'FULL_BUILD_ID': args['build_id_full'],
                 'COMMIT_COUNT': args['commit_count'],
