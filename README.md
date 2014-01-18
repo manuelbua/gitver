@@ -24,7 +24,7 @@ Sample output (this repository):
 
 ## Installation
 
-Please read the simple *Installation instructions* in the [INSTALL.md](https://github.com/manuelbua/gitver/blob/master/README.md) file, you can install either via `pip` or by cloning this repository.
+Please read the simple *Installation instructions* in the [INSTALL.md](https://github.com/manuelbua/gitver/blob/master/INSTALL.md) file, you can install either via `pip` or by cloning this repository.
 
 *NOTE the **badges** present at the top of these pages (version and downloads) refers to the latest stable packages uploaded to PyPI: cloning this repository will checkout the version i'm currently working on and may not reflect the same version.*
 
