@@ -351,8 +351,10 @@ Here is the list of variables, with their values, available for use in templates
     ${MAJOR}               = 0
     ${MINOR}               = 4
     ${PATCH}               = 10
+    ${REV}                 = (empty string)
+    ${REV_PREFIX}          = (empty string, or a '.' if a revision number is present)
     ${COMMIT_COUNT}        = 2
-    ${COMMIT_COUNT_STR}    = 2 (or an empty string if 0)
+    ${COMMIT_COUNT_STR}    = 2 (or an empty string if commit count is 0)
     ${COMMIT_COUNT_PREFIX} = either the 'commit_count_prefix' specified in the config file or an empty string, if the commit count is 0
     ${META_PR}             = either the pre-release metadata from the last reachable tag, the 'default_meta_pr_in_next' (from config file), the 'default_meta_pr_in_next_no_next' (from config file) or an empty string, depending on the state of the repository
     ${META_PR_PREFIX}      = either the 'meta_pr_prefix' specified in the config file or an empty string, if no pre-release metadata is available for use
