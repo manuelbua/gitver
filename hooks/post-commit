@@ -1,3 +1,2 @@
 #!/bin/bash
-# gitver should be in your path to work!
 bin/gitver update version
