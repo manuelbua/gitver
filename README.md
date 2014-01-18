@@ -21,6 +21,14 @@ Sample output (this repository):
     Current build ID: 1d170e7f42817d0f277c52ad686b24ac69b353d4
     Current version: v0.3.0-RC1.47+1d170e7 => v0.3.0
 
+
+## Installation
+
+Please read the simple *Installation instructions* in the [INSTALL.md](https://github.com/manuelbua/gitver/blob/master/README.md) file, you can install either via `pip` or by cloning this repository.
+
+*NOTE the **badges** present at the top of these pages (version and downloads) refers to the latest stable packages uploaded to PyPI: cloning this repository will checkout the version i'm currently working on and may not reflect the same version.*
+
+
 ## Helps in version string management
 
 Coupled with [git hooks](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), `gitver` version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
