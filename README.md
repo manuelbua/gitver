@@ -351,7 +351,7 @@ Here is the list of variables, with their values, available for use in templates
     ${MAJOR}               = 0
     ${MINOR}               = 4
     ${PATCH}               = 10
-    ${REV}                 = (empty string)
+    ${REV}                 = (empty string, or a revision number if present)
     ${REV_PREFIX}          = (empty string, or a '.' if a revision number is present)
     ${COMMIT_COUNT}        = 2
     ${COMMIT_COUNT_STR}    = 2 (or an empty string if commit count is 0)
