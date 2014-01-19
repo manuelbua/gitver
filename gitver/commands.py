@@ -182,7 +182,7 @@ def build_format_args(cfg, repo_info, next_custom=None):
         'rev_prefix': '.' if has_rev else '',
         'meta_pr': meta_pr,
         'meta_pr_prefix': cfg['meta_pr_prefix'] if len(meta_pr) > 0 else '',
-        'commit_count': vcount,
+        'commit_count': vcount if vcount > 0 else '',
         'commit_count_prefix': cfg['commit_count_prefix'] if vcount > 0 else '',
         'build_id': vbuildid,
         'build_id_full': repo_info['full-build-id']
