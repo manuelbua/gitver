@@ -1,3 +1,16 @@
+Bugfixes since v0.3.0
+=====================
+
+    2014-01-19  Manuel Bua  <manuel.bua@gmail.com>
+
+        * Update README.md
+
+        * Fix commit_count in templates not being an empty string when 0
+
+    2014-01-18  Manuel Bua  <manuel.bua@gmail.com>
+
+        * Fix README.md
+
 Updates and fixes since v0.3.0-RC1
 ==================================
 
