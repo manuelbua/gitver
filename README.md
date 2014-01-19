@@ -1,5 +1,5 @@
-[![PyPi version](https://pypip.in/v/gitver/badge.png)](https://crate.io/packages/gitver/)
-[![PyPi downloads](https://pypip.in/d/gitver/badge.png)](https://crate.io/packages/gitver/)
+[![PyPi version](https://pypip.in/v/gitver/badge.png?)](https://crate.io/packages/gitver/)
+[![PyPi downloads](https://pypip.in/d/gitver/badge.png?)](https://crate.io/packages/gitver/)
 [![Project Stats](https://ohloh.net/p/gitver/widgets/project_thin_badge.gif)](https://ohloh.net/projects/gitver)
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=manuelbua&url=https://github.com/manuelbua/gitver&title=gitver&language=&tags=github&category=software)
 
