@@ -191,7 +191,7 @@ The following is an easy-to-follow, step-by-step mini tutorial that will walk yo
 
 ### Step-by-step mini tutorial
 
-###### Building some repository history
+##### Building some repository history
 
 Let's create a new repository in your `/tmp` folder:
 
@@ -264,7 +264,7 @@ Notice how the build id stayed the same but the version string changed: both str
 
 Now lookup your `.gitver/config` file and look at the `format_next` definition:
 
-    "format_next": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
+    "format_next": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s%(commit_count_prefix)s%(commit_count)s+%(build_id)s"
 
 This defines the format of the version string being generated at this point of development: since the *commit count* from the most recent valid tag is greater than `0`, this denotes a *development* build, and the `format_next` variation is used: the `%(meta_pr)s` placeholder will be replaced by the pre-release metadata if your tag defines one, else the configuration defaults will be used, but this will only happen in development builds, there is no point in exposing *pre-release* metadata in a *stable* release.
 
@@ -275,7 +275,7 @@ The same reasoning applies to the *commit count*: whenever it's equal to `0` bot
 This permit to adapt and change version string formats by letting you defines concatenations more easily.
 
 
-###### Tagging a release
+##### Tagging a release
 
 Let's add that `.gitignore` file we didn't add before, then declare the version stable by just tagging it as that:
 
@@ -298,7 +298,7 @@ So let's have `gitver` take a look at the repository now:
 
 As you can see, `gitver` now uses the *other* string format from the configuration file:
 
-    "format": "%(maj)s.%(min)s.%(patch)s%(meta_pr_prefix)s%(meta_pr)s"
+    "format": "%(maj)s.%(min)s.%(patch)s%(rev_prefix)s%(rev)s%(meta_pr_prefix)s%(meta_pr)s"
 
 This is being used when the commit count from the most recent tag is equal to `0` since this denotes a *stable* build, rather than a development one.
 
@@ -313,7 +313,7 @@ Done that? Now look at `gitver`'s output now:
     $ gitver
     Most recent tag: v0.0.1
     Current build ID: 94b2ef2ed92844377f1e8b1160a014bae0273792
-    Current version: v0.0.10+94b2ef2
+    Current version: v0.0.1+94b2ef2
 
 As expected, there is no sign of prefixes, nor default metadata or commit count in the stable build.
 
@@ -353,8 +353,8 @@ Here is the list of variables, with their values, available for use in templates
     ${PATCH}               = 10
     ${REV}                 = (empty string, or a revision number if present)
     ${REV_PREFIX}          = (empty string, or a '.' if a revision number is present)
-    ${COMMIT_COUNT}        = 2
-    ${COMMIT_COUNT_STR}    = 2 (or an empty string if commit count is 0)
+    ${COMMIT_COUNT}        = 2 (or 0 if commit count is 0)
+    ${COMMIT_COUNT_STR}    = '2' (or an empty string if commit count is 0)
     ${COMMIT_COUNT_PREFIX} = either the 'commit_count_prefix' specified in the config file or an empty string, if the commit count is 0
     ${META_PR}             = either the pre-release metadata from the last reachable tag, the 'default_meta_pr_in_next' (from config file), the 'default_meta_pr_in_next_no_next' (from config file) or an empty string, depending on the state of the repository
     ${META_PR_PREFIX}      = either the 'meta_pr_prefix' specified in the config file or an empty string, if no pre-release metadata is available for use
