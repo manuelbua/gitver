@@ -306,10 +306,10 @@ def cmd_info(cfg, args):
 
     promoted = build_version_string(cfg, repo_info, True, next_custom)
     term.out(
-        "Current version: " +
-        term.ver("v" + build_version_string(
+        "Current version: " + "v" +
+        term.ver(build_version_string(
             cfg, repo_info, False, next_custom)) +
-        (" => " + term.prom("v" + promoted) if len(promoted) > 0 else '')
+        (" => v" + term.prom(promoted) if len(promoted) > 0 else '')
     )
 
 
