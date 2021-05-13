@@ -10,7 +10,7 @@ import json
 import string
 from os.path import exists, dirname
 from gitver.defines import CFGFILE
-from termcolors import term, bold
+from .termcolors import term, bold
 
 default_config_text = """{
     # automatically generated configuration file

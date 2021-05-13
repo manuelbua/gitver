@@ -24,7 +24,7 @@ Copyright (c) 2013-2014 Manuel Bua.
 __author__ = "Manuel Bua"
 
 try:
-    from version import gitver_version
+    from .version import gitver_version
     __version__ = gitver_version
 except ImportError:
     __version__ = 'UNKNOWN'

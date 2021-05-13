@@ -10,12 +10,12 @@ import os
 import sys
 from string import Template
 
-from termcolors import term, bold
-from git import get_repo_info
+from .termcolors import term, bold
+from .git import get_repo_info
 from gitver.storage import KVStore
-from sanity import check_gitignore
-from defines import CFGDIR, PRJ_ROOT, CFGDIRNAME
-from version import gitver_version, gitver_buildid
+from .sanity import check_gitignore
+from .defines import CFGDIR, PRJ_ROOT, CFGDIRNAME
+from .version import gitver_version, gitver_buildid
 
 
 # file where to store NEXT strings <=> TAG user-defined mappings
@@ -239,7 +239,7 @@ def cmd_init(cfg, args):
     Multiple executions of this command will regenerate the default
     configuration file whenever it's not found.
     """
-    from config import create_default_configuration_file
+    from .config import create_default_configuration_file
     i = 0
 
     if not os.path.exists(CFGDIR):

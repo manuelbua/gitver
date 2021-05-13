@@ -14,3 +14,4 @@ dist/
 build/
 /*.egg-info
 /*.egg
+venv

@@ -36,7 +36,7 @@ class KVStore(object):
         return False
 
     def items(self):
-        return self.__data.items()
+        return list(self.__data.items())
 
     def get(self, key):
         if key in self.__data:
