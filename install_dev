@@ -10,6 +10,6 @@ sudo find . -name \*.pyc -delete
 
 # update version info
 bin/gitver update version
-sudo python2 setup.py develop
+sudo python setup.py develop
 sudo rm -rf build dist &> /dev/null
 sudo find . -name \*.pyc -delete

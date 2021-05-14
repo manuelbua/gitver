@@ -1,8 +1,5 @@
 [![PyPi version](https://pypip.in/v/gitver/badge.png?)](https://crate.io/packages/gitver/)
 [![PyPi downloads](https://pypip.in/d/gitver/badge.png?)](https://crate.io/packages/gitver/)
-[![Project Stats](https://ohloh.net/p/gitver/widgets/project_thin_badge.gif)](https://ohloh.net/projects/gitver)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/manuelbua/gitver/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=manuelbua&url=https://github.com/manuelbua/gitver&title=gitver&language=&tags=github&category=software)
 
 
 ## What is it?
@@ -35,16 +32,9 @@ Please read the simple *Installation instructions* in the [INSTALL.md](https://g
 Coupled with [git hooks](http://git-scm.com/book/en/Customizing-Git-Git-Hooks), `gitver` version blob templates helps to keep your own project updated with its version information, performing simple template-based substitution automatically at *post-commit* time, for example.
 
 
-## Why?
-
-I'm working on a project that requires precise version string tracking and synchronization between a server and its different clients, so an automatic mechanism is needed.
-
-Furthermore, i want the version string and/or other useful information to be **embedded** in the application code automatically, "compiled-in" so to speak, without me having to remember to do it manually each time.
-
-
 ## Repository pre-requisites
 
-`gitver` expects your tags to be **annotated** and be in this format:
+`gitver` expects your tags to be in this format:
 
     [v]MAJOR.MINOR.PATCH[.REVISION][-PRE-RELEASE-METADATA]
 
@@ -58,8 +48,6 @@ Note that, at this time, `gitver` will **not** skip unsupported tags during its 
 
     ERROR: Couldn't retrieve version information from tag "my-other-tag".
     gitver expects tags to be in the format [v]X.Y.Z[.REVISION][-PRE-RELEASE-METADATA]
-
-However, since `gitver` will only search for annotated tags, you could safely use *unannotated tags* for any other need.
 
 
 ## Workflow
@@ -81,7 +69,7 @@ The following is a workflow exemplification of using *gitver* to manage version 
 
 ## How does it work?
 
-By reading your last reachable **annotated** tag, it will generate customly-formatted version strings, distinguishing automatically between *stable* and *development* builds, depending on the number of commits from that last tag (the *commit count*).
+By reading your last reachable tag, it will generate customly-formatted version strings, distinguishing automatically between *stable* and *development* builds, depending on the number of commits from that last tag (the *commit count*).
 
 It will also apply tag-based or configuration file-based pre-release metadata in development builds, giving you fine-grained control on how the final version string will be composed.
 
@@ -394,7 +382,7 @@ It's possible to define any number of templates, just put them in the `.gitver/t
 Let's take a look at `gitver`'s own [template](hub.com/manuelbua/gitver/blob/master/.gitver/templates/version):
 
     # gitver/_version.py
-    #!/usr/bin/env python2
+    
     # coding=utf-8
 
     # DO NOT TOUCH, AUTOMATICALLY UPDATED!
@@ -410,7 +398,7 @@ Now let's compile it:
 
 This will produce the following file at `/home/manuel/dev/gitver/gitver/_version.py`, **overwriting** the previous file, if any:
 
-    #!/usr/bin/env python2
+    
     # coding=utf-8
 
     # DO NOT TOUCH, AUTOMATICALLY UPDATED!

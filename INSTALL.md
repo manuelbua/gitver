@@ -15,40 +15,15 @@ By using the latter you'll be able to choose between *stable* or *development* r
 
 #### Environment
 
-You'll need these packages to be installed, usually by your OS' package manager:
+You'll need these packages to be installed.
 
-- Python 2.7 (2.6 *may* works, but i've not tested it)
+- Python 2.7, 3.6, 3.7, 3.8, 3.9
 - the `git` tool
-
-
-## Install via PyPI
-
-If you don't have `pip` installed, let's do that now: there are various ways to do that, i personally prefer to use my OS package manager.
-
-For Arch Linux installations, you may install `pip` system-wide with this command:
-
-    sudo pacman -S python2-pip
-
-When finished, check everything is fine:
-
-    $ pip2 --version
-    pip 1.5 from /usr/lib/python2.7/site-packages (python 2.7)
-
-Now you are ready to install via `pip`:
-
-    $ pip2 install gitver
-
-Done!
 
 ## Install via repository
 
 You are going to need to install `setuptools` and `pip`, so use your package manager or any other means for this.
 
-For Arch Linux installations, you may install them system-wide with this command:
-
-    sudo pacman -S python2-setuptools python2-pip
-
-Refer to your package manager of choice on how to do that.
 
 #### Clone the project
 

@@ -1,7 +1,4 @@
 # gitver/_version.py
-#!/usr/bin/env python2
-# coding=utf-8
-
 # DO NOT TOUCH, AUTOMATICALLY UPDATED!
 gitver_version = '${CURRENT_VERSION}'
 gitver_buildid = '${FULL_BUILD_ID}'

@@ -1,6 +1,3 @@
-#!/usr/bin/env python2
-# coding=utf-8
-
 """
 git support library
 """
@@ -73,7 +70,7 @@ def get_build_id():
 
 def last_tag():
     try:
-        tag = __git('describe', '--abbrev=0')
+        tag = __git('describe', '--tags', '--abbrev=0')
     except ErrorReturnCode:
         return False
 

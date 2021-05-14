@@ -13,5 +13,5 @@ sudo find . -name \*.pyc -delete
 bin/gitver update version
 
 echo "Building release version..."
-python2 setup.py sdist
-echo -e "\nPush it to PyPI when ready with \"python2 setup.py sdist upload\""
+python setup.py sdist
+echo -e "\nPush it to PyPI when ready with \"python setup.py sdist upload\""

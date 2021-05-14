@@ -1,6 +1,3 @@
-#!/usr/bin/env python2
-# coding=utf-8
-
 """
 Represents one of the simplest form of key-value storage to file
 """
