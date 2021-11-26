@@ -5,7 +5,7 @@
 
 # Installation instructions
 
-`gitver` can be installed either via `pip` or by checking out the repositroy, the place where all the development happens.
+`gitver` can be installed either via `pip` or by checking out the repository, the place where all the development happens.
 
 By using the latter you'll be able to choose between *stable* or *development* releases, while on [PyPI](https://pypi.python.org/pypi) only stable versions are uploaded.
 
